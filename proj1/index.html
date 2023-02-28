@@ -1,185 +1,161 @@
-<h1><center> CS 194-26: Project 1 </h2>
-<h3><center> Tracy Xia </h3>
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* {
+  box-sizing: border-box;
+}
 
-<h4> Project Overview and Approach </h4>
-<p>	This project turns digitized glass plate image by Prokudin-Gorskii into colored images using image processing techniques. The three color channels are extracted, then placed on top of each other, aligning them properly to create a colored image.</p>
-<p>	First, I created a simple algorithm that will align low-res images. In this step, I first created a cropped version of the input images so that the outer edges (10 pixels) is excluded from the score calculations to account for any imperfect edges in the images. Different displacements within a [-15, 15] search window are scored using NCC and compared with each other to find the best scoring alignment. The best scoring displacement is then performed on the original image and returned. </p>
-<p>	To speed up the process, I implemented a pyramid such that for high-res images, they are recursively rescaled by a factor of 0.5 until the image is small enough to run on the simple alignment within the [-15, 15] search window. Then for each finer image, the simple alignment is performed within a [-2, 2] search window instead, updating the estimated displacement. Finally, the best displacement is returned. For most images, the algorithm works while a select few (ex. Emir and Cathedral) has alignment issues since the borders in the images may influence the score calculations.</p>
+.column4 {
+  float: left;
+  width: 25%;
+  padding: 5px;
+}
 
-<h4> Bells and Whistles </h4>
-<p>	In order to improve the alignment, I also implemented white edge cropping which helps eliminate the white edges from the score calculations and alignment. This is done on the overall image before the color channels are separated from each other. Edges are detected by searching each row or column of pixels starting from the outermost edges and calculating the ratio of pixels that are over some value. If the ratio is over some threshold, it is part of the white edge and removed from the input image. With the removal of the white edges, the images that were originally fuzzy or poorly aligned are now properly aligned and clear.</p>
-<p>	Lastly, for solely aesthetic purposes, I implemented an additional edge crop that removes the black edges from the final colored image. Edges are detected similarly to the white edges, except there is an additional ratio check of blocks of pixels (multiple rows or columns of pixels at once) in order to account for markings from the original image that may stop edge detection prematurely if searching only one row or column at a time. This edge cropping is done after alignment, so it does not affect the alignment algorithm.</p>
+.column2 {
+  float: left;
+  width: 50%;
+  padding: 5px;
+}
 
-<h2> Images with Cropping </h2>
+.column3 {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+}
 
-<h4> Cathedral </h4>
-<p> green displacement (x, y):  2 -1 </p>
-<p> red displacement (x, y):  3 0 </p>
-<img src="crop/cathedral.jpeg" height=300>
+.column5 {
+  float: left;
+  width: 20%;
+  padding: 5px;
+}
 
-<h4> Monastery </h4>
-<p> green displacement (x, y):  2 -10 </p>
-<p> red displacement (x, y):  2 -11 </p>
-<img src="crop/monastery.jpeg" height=300>
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
 
-<h4> Tobolsk </h4>
-<p> green displacement (x, y):  2 -1 </p>
-<p> red displacement (x, y):  3 -2 </p>
-<img src="crop/tobolsk.jpeg" height=300>
+</style>
+</head>
+<body>
 
-<h4> Church </h4>
-<p> green displacement (x, y):  -6 -15 </p>
-<p> red displacement (x, y):  -6 -19 </p>
-<img src="crop/church.jpeg" height=300>
+<h1><center> CS 184: Project 1 Rasterizer </h1>
+<h3><center> Ellie Hubach, Tracy Xia </h3>
 
-<h4> Icon </h4>
-<p> green displacement (x, y):  17 -10 </p>
-<p> red displacement (x, y):  22  -10 </p>
-<img src="crop/icon.jpeg" height=300>
+<h2> Overview </h2>
+<p> In the project, we focused on the rasterization of triangles, implementing different methods to help antialias our rasterizations. This included supersampling, pixel sampling, and level sampling. Each of these methods yielded different results and could be used in combinations as well. As we worked on the project, we also analyzed the advantages and disadvantages of each method, and their differences. It was really interesting to see these differences and compare the results. Notably, different level sampling methods created vastly different results. It was cool to see how by sampling at different mipmap levels instead of solely at full resolution, the resulting images became so much better! Another cool thing in this project was thinking about how the triangle rasterization and texturing we implemented in this project can scale into the much more complex graphics we see in media! </p>
 
-<h4> Harvesters </h4>
-<p> green displacement (x, y):  15 -2 </p>
-<p> red displacement (x, y):  14 6 </p>
-<img src="crop/harvesters.jpeg" height=300>
+<h2> Task 1 </h2>
+<h3> Drawing Single-Color Triangles </h3>
 
-<h4> Onion Church </h4>
-<p> green displacement (x, y):  25 -23 </p>
-<p> red displacement (x, y):  36 -42 </p>
-<img src="crop/onion_church.jpeg" height=300>
+<p> We rasterize triangles by going through each pixel in the bounding box of the triangle and checking to see if it is in the triangle. We do this by creating three line equations from the three points given to us to make the triangle, and then plugging in the x- and y- of the pixel we’re filling (with a 0.5 correction to get the center of the pixel) to see if the pixel is on the side of the line where the triangle is. If the points given are in a clockwise direction, we check if every line equation evaluated at the pixel value is greater than 0. If the points are given in a counter-clockwise direction, we check to see if the evaluated line equations are less than 0. </p>
+<p> Our algorithm is no worse than one that checks within the bounding box of the triangle because we only loop through the pixels in the bounding box of the triangle. We do this in the following way: for the x-coordinates, we start our loop at the minimum of the x-coordinates of the points given, and we end our loop at the maximum; likewise for the y-coordinates. </p>
 
-<h4> Sculpture </h4>
-<p> green displacement (x, y):  -11 -40 </p>
-<p> red displacement (x, y):  -26 -7 </p>
-<img src="crop/sculpture.jpeg" height=300>
+<img src="task1.png" height=300, class="center">
 
-<h4> Emir </h4>
-<p> green displacement (x, y):  24 -26 </p>
-<p> red displacement (x, y):  42 -46 </p>
-<img src="crop/emir.jpeg" height=300>
 
-<h4> Three Generations </h4>
-<p> green displacement (x, y):  12 -16 </p>
-<p> red displacement (x, y):  9 -29 </p>
-<img src="crop/three_generations.jpeg" height=300>
+<h2> Task 2 </h2>
+<h3> Antialiasing by Supersampling </h3>
 
-<h4> Lady </h4>
-<p> green displacement (x, y):  1 -18 </p>
-<p> red displacement (x, y):  -2 -41 </p>
-<img src="crop/lady.jpeg" height=300>
+<p> Functions where sample_buffer is resized are updated for supersampling support by resizing it to width*height*sample_rate. In resolve_to_framebuffer, we previously directly filled the target framebuffer 1:1 with the sample_buffer data. However, for supersampling, the function now instead finds the average of NxN (N is sample_rate) squares of pixels and fills in the corresponding pixel in the target with this average. That is, every pixel (x,y) in the target framebuffer corresponds to an NxN square of pixels in the sample_buffer. </p>
+<p> Supersampling is useful because it allows us to antialias our images. We can reduce jaggies and artifacts, as well as create smoother lines and edges. </p>
+<p> Modifications in rasterize_triangle were made for supersampling. The given coordinates of the triangle are scaled by sqrt(sample_rate) so that we can fill in the sample buffer of size width*height*sample_rate properly, where we are checking if a sample_rate number of points are in the triangle instead for every point originally (at sample_rate 1). rasterize_point and rasterize_line also needed to be updated such that for every pixel we would be rasterizing at sample_rate 1, we are now filling a NxN square of pixels. We are upsizing the rasterizations for larger sample_rate values, then downsizing to the correct dimensions in resolve_to_framebuffer with the average values.  </p>
+<p> Supersampling antialias the triangles by removing higher frequencies. This occurs because we are first filling a larger-dimension image, then approximating the pixels of the original dimensions by using averaged values. This allows us to “blur” the areas of the image where there may have been jaggies, and smooth out our edges and lines. </p>
 
-<h4> Melons </h4>
-<p> green displacement (x, y):  8 -3 </p>
-<p> red displacement (x, y):  12 9 </p>
-<img src="crop/melons.jpeg" height=300>
+<h4> Supersample Rate Comparison: Rates 1, 4, 16 </h4>
+<div class="row">
+  <div class="column3">
+    <img src="task2_1.png" height=250>
+  </div>
+  <div class="column3">
+    <img src="task2_4.png" height=250>
+  </div>
+    <div class="column3">
+    <img src="task2_16.png" height=250>
+  </div>
+</div>
 
-<h4> Self Portrait </h4>
-<p> green displacement (x, y):  27 -16 </p>
-<p> red displacement (x, y):  35 -12 </p>
-<img src="crop/self_portrait.jpeg" height=300>
+<p> When we have higher sample rates, there are less jaggies and the edges are smoother. This is because we filled in our sample buffer at a higher resolution for higher sample rates and downsampled the sample buffer to fill in the target, causing some pixels to have averaged colors instead. This helps antialias the image by blurring the edges and removing high frequencies when we are downsampling. </p>
 
-<h4> Train </h4>
-<p> green displacement (x, y):  2 -19 </p>
-<p> red displacement (x, y):  30 -31 </p>
-<img src="crop/train.jpeg" height=300>
 
-<h4> Field </h4>
-<p> green displacement (x, y):  0 -1 </p>
-<p> red displacement (x, y):  0 -1 </p>
-<img src="crop/field.jpeg" height=300>
+<h2> Task 3 </h2>
+<h3> Transforms </h3>
 
-<h4> Gold </h4>
-<p> green displacement (x, y):  9 -9 </p>
-<p> red displacement (x, y):  12 -12 </p>
-<img src="crop/gold.jpeg" height=300>
+<img src="task3.png" height=300, class="center">
 
-<h4> Wood </h4>
-<p> green displacement (x, y):  20 -23 </p>
-<p> red displacement (x, y):  32 -35 </p>
-<img src="crop/wood.jpeg" height=300>
+<p> <center>The robot is supposed to be waving their right arm and holding their left arm on their hip. </center></p>
 
-<h2> Images without Cropping </h2>
 
-<h4> Cathedral </h4>
-<p> green displacement (x, y):  2 5 </p>
-<p> red displacement (x, y):  3 3 </p>
-<img src="no_crop/cathedral.jpeg" height=300>
+<h2> Task 4 </h2>
+<h3> Barycentric coordinates </h3>
 
-<h4> Monastery </h4>
-<p> green displacement (x, y):  2 -3 </p>
-<p> red displacement (x, y):  2 3 </p>
-<img src="no_crop/monastery.jpeg" height=300>
+<img src="task4_ex.png" height=300, class="center">
 
-<h4> Tobolsk </h4>
-<p> green displacement (x, y):  2 3 </p>
-<p> red displacement (x, y):  3 6 </p>
-<img src="no_crop/tobolsk.jpeg" height=300>
+<p> Barycentric coordinates give a position of a point relative to the three points of a triangle. These coordinates can be used to smoothly color a triangle, as shown in the above photo. The colors are smoothly interpolated between the points by taking essentially a weighted average of the colors in the points, using barycentric coordinates to find the weights. </p>
 
-<h4> Church </h4>
-<p> green displacement (x, y):  -5 0 </p>
-<p> red displacement (x, y):  -13 18 </p>
-<img src="no_crop/church.jpeg" height=300>
+<img src="task4_t7.png" height=300, class="center">
 
-<h4> Icon </h4>
-<p> green displacement (x, y):  16 42 </p>
-<p> red displacement (x, y):  22 88 </p>
-<img src="no_crop/icon.jpeg" height=300>
 
-<h4> Harvesters </h4>
-<p> green displacement (x, y):  10 59 </p>
-<p> red displacement (x, y):  8 122 </p>
-<img src="no_crop/harvesters.jpeg" height=300>
+<h2> Task 5 </h2>
+<h3> "Pixel sampling" for texture mapping </h3>
 
-<h4> Onion Church </h4>
-<p> green displacement (x, y):  22 52 </p>
-<p> red displacement (x, y):  35 108 </p>
-<img src="no_crop/onion_church.jpeg" height=300>
+<p> Pixel sampling can be used to implement texture mapping by sampling pixels from an image we want the texture of and creating our new image with the colors from the texture that we obtain through sampling. In nearest sampling, we obtain the color we want to fill the sample buffer by extracting it from the mipmap at the coordinates corresponding to our input (u, v) coordinates. We can do this by scaling (u, v) by the width and height of the mipmap, respectively. Alternatively, bilinear sampling finds the corresponding coordinates but samples using the four nearest sample locations instead. We apply linear interpolation using the four points (two horizontal lerps and one vertical lerp) in order to obtain our final color.  </p>
 
-<h4> Sculpture </h4>
-<p> green displacement (x, y):  -11 33 </p>
-<p> red displacement (x, y):  -26 140 </p>
-<img src="no_crop/sculpture.jpeg" height=300>
+<h4> Nearest and Bilinear Sampling Comparison: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="task5_n1.png" height=300>
+    <p> Nearest Sampling, Sample Rate 1 </p>
+  </div>
+  <div class="column2">
+    <img src="task5_b1.png" height=300>
+    <p> Bilinear Sampling, Sample Rate 1 </p>
+  </div>
+</div>
 
-<h4> Emir </h4>
-<p> green displacement (x, y):  10 38 </p>
-<p> red displacement (x, y):  18 30 </p>
-<img src="no_crop/emir.jpeg" height=300>
+<div class="row">
+  <div class="column2">
+    <img src="task5_n16.png" height=300>
+    <p> Nearest Sampling, Sample Rate 16 </p>
+  </div>
+  <div class="column2">
+    <img src="task5_b16.png" height=300>
+    <p> Bilinear Sampling, Sample Rate 16 </p>
+  </div>
+</div>
 
-<h4> Three Generations </h4>
-<p> green displacement (x, y):  5 52 </p>
-<p> red displacement (x, y):  7 107 </p>
-<img src="no_crop/three_generations.jpeg" height=300>
+<p> At both sample rate 1 and 16, the difference between the two methods is most obvious as nearest sampling has a lot more jaggies and the edges are not smooth. In contrast, bilinear sampling had much smoother edges. Bilinear sampling at sample rate 16 has the smoothest edge and no noticeable jaggies at the inspected location. There are large differences between the two methods when our image is supposed to generate more curved edges and/or has a lot of details.  </p>
 
-<h4> Lady </h4>
-<p> green displacement (x, y):  -6 56 </p>
-<p> red displacement (x, y):  -17 102 </p>
-<img src="no_crop/lady.jpeg" height=300>
+<h2> Task 6 </h2>
+<h3> "Level sampling" with mipmaps for texture mapping </h3>
 
-<h4> Melons </h4>
-<p> green displacement (x, y):  4 83 </p>
-<p> red displacement (x, y):  8 178 </p>
-<img src="no_crop/melons.jpeg" height=300>
+<p> In level sampling, we are taking samples from different levels of the mipmap of the texture. At each level the texture image is downsampled. We want to pick the texture that has the most similar resolution as the screen sampling rate for each sample. The implementation for level sampling involves three different methods. When we have L_ZERO, we always assume a level of 0, which means the texture image is at full resolution. This is what we used by default in Task 5. When we have L_NEAREST, we have to find the nearest level and use that value in our sample_nearest and sample_bilinear functions which both take in a mipmap level value as the parameter. The level is found based on calculations from the lecture slides, and we clamp the value to ensure we have a valid level between 0 and mipmap.size() - 1, then finally rounding to the nearest level. For L_LINEAR we compute a continuous mipmap level value. After we calculate the level as before, we do not round to the nearest neighbor and use this float value to find the adjacent two levels. We then calculated a weighted sum of the two samples found at each adjacent level. The weight is found by finding the difference between each adjacent level and the calculated float level value. </p>
 
-<h4> Self Portrait </h4>
-<p> green displacement (x, y):  2 70 </p>
-<p> red displacement (x, y):  2 162 </p>
-<img src="no_crop/self_portrait.jpeg" height=300>
+<p> Supersampling, while produces high quality restuls, is the most costly in terms of speed and memory. Level sampling also good results and is more time efficient than supersampling but takes up a lot of memory. Pixel sampling, while may not produce results that are as good as the other two methods, is more cost-efficient.</p>
 
-<h4> Train </h4>
-<p> green displacement (x, y):  -2 42 </p>
-<p> red displacement (x, y):  18 90 </p>
-<img src="no_crop/train.jpeg" height=300>
+<h4> Combination Comparison: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="task6_lzpn.png" height=300>
+    <p> L_ZERO and P_NEAREST </p>
+  </div>
+  <div class="column2">
+    <img src="task6_lzpl.png" height=300>
+    <p> L_ZERO and P_LINEAR </p>
+  </div>
+</div>
+<div class="row">
+  <div class="column2">
+    <img src="task6_lnpn.png" height=300>
+    <p> L_NEAREST and P_NEAREST </p>
+  </div>
+  <div class="column2">
+    <img src="task6_lnpl.png" height=300>
+    <p> L_NEAREST and P_LINEAR </p>
+  </div>
+</div>
 
-<h4> Field </h4>
-<p> green displacement (x, y):  0 7 </p>
-<p> red displacement (x, y):  0 15 </p>
-<img src="no_crop/field.jpeg" height=300>
-
-<h4> Gold </h4>
-<p> green displacement (x, y):  -3 66 </p>
-<p> red displacement (x, y):  -11 146 </p>
-<img src="no_crop/gold.jpeg" height=300>
-
-<h4> Wood </h4>
-<p> green displacement (x, y):  17 48 </p>
-<p> red displacement (x, y):  31 102 </p>
-<img src="no_crop/wood.jpeg" height=300>
+<h3> Website Link: https://cal-cs184-student.github.io/proj-webpage-gobears/proj1/index.html </h3>
+</body>
+</html>

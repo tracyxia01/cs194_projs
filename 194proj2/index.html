@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+.column4 {
+  float: left;
+  width: 25%;
+  padding: 5px;
+}
+
+.column2 {
+  float: left;
+  width: 50%;
+  padding: 5px;
+}
+
+.column3 {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+}
+
+.column5 {
+  float: left;
+  width: 20%;
+  padding: 5px;
+}
+</style>
+</head>
+<body>
+
+<h1><center> CS 194-26: Project 2 </h2>
+<h3><center> Tracy Xia </h3>
+
+<h3> Part 1.1</h3>
+<p>	Gradient magnitude computation is done by finding the partial derivatives in x and y of a given image then taking the norm. We can do this by convolving the image with the finite difference operators Dx = [1 -1] and Dy = [1 -1]^T. After we convolve the image with the Dx and Dy filters, we can combine the results by taking the norm of the two. To create the edge image, pick a threshold to binarize the gradient magnitude image by.</p>
+
+<div class="row">
+	<div class="column4">
+    	<img src="cameraman.png" alt="Cameraman" height=300>
+    	<p> Cameraman Image </p>
+  	</div>
+  	<div class="column4">
+    	<img src="cameraman_dx.jpg" alt="Camerman Dx" height=300>
+    	<p> Cameraman changes in X direction </p>
+  	</div>
+  	<div class="column4">
+    	<img src="cameraman_dy.jpg" alt="Camerman Dy" height=300>
+    	<p> Cameraman changes in Y direction </p>
+  	</div>
+  	<div class="column4">
+    	<img src="cameraman1.jpg" alt="Camerman Edges" height=300>
+    	<p> Cameraman Edge Image </p>
+  	</div>
+</div>
+
+<h3> Part 1.2</h3>
+<p>	To remove noise in our edge image, we can first blur the image, then repeat the same process at 1.1. This creates an edge image that is less noisy and smoother. This also makes the edges thicker and we have to pick a different threshold that will be able to pick up all of the blurred edges.</p>
+<p>	We can achieve the same result by convolving our gaussian with Dx and Dy instead, the convolving our image (not blurred) with the resulting filters.</p>
+
+<div class="row">
+  <div class="column4">
+    <img src="cameraman2_1.jpg" alt="Edge Image of Blurred Cameraman" height=300>
+    <p> Edge Image of Blurred Cameraman </p>
+  </div>
+  <div class="column4">
+    <img src="dogx.jpg" alt="DoGx" height=200>
+    <p> DoGx </p>
+  </div>
+  <div class="column4">
+    <img src="dogy.jpg" alt="DoGy" width=200>
+    <p> DoGy </p>
+  </div>
+  <div class="column4">
+    <img src="cameraman2_2.jpg" alt="Edge Image using DoG" height=300>
+    <p> Edge Image using DoG </p>
+  </div>
+</div>
+
+<h3> Part 2.1</h3>
+<p> For this part, we find the high frequency components of an image and add it back into the original image to sharpen. We can find the high frequency components by blurring the image (low frequency) then subtracting the blurred image from the original. </p>
+
+<h4>	Sharpening the Taj Mahal: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="taj.jpeg" alt="Taj" height=300>
+    <p> Original Taj Mahal Image </p>
+  </div>
+  <div class="column2">
+    <img src="taj_sharp.jpg" alt="Sharpened Taj" height=300>
+    <p> Sharpened Taj Mahal Image </p>
+  </div>
+</div>
+
+<h4>	Sharpening the Cookie: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="cookie.jpeg" alt="Cookie" height=300>
+    <p> Original Cookie Image </p>
+  </div>
+  <div class="column2">
+    <img src="cookie_sharp.jpg" alt="Sharpened Cookie" height=300>
+    <p> Sharpened Cookie Image </p>
+  </div>
+</div>
+
+<h4> Here are some other samples in this order: Original -> Blurred -> Sharpened </h4>
+<div class="row">
+  <div class="column3">
+    <img src="strawberry.jpeg" alt="Strawberry" height=300>
+    <p> Original Strawberry Image </p>
+  </div>
+  <div class="column3">
+    <img src="strawberry_blur.jpg" alt="Blurred Strawberry" height=300>
+    <p> Blurred Strawberry Image </p>
+  </div>
+  <div class="column3">
+    <img src="strawberry_sharp.jpg" alt="Sharpened Strawberry" height=300>
+    <p> Sharpened Strawberry Image </p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="column3">
+    <img src="zucker.jpeg" alt="Zucker" height=300>
+    <p> Original Zucker Image </p>
+  </div>
+  <div class="column3">
+    <img src="zucker_blur.jpg" alt="Blurred Zucker" height=300>
+    <p> Blurred Zucker Image </p>
+  </div>
+  <div class="column3">
+    <img src="zucker_sharp.jpg" alt="Sharpened Zucker" height=300>
+    <p> Sharpened Zucker Image </p>
+  </div>
+</div>
+
+<p> Compared to the original images, the blurred then sharpened images lack the same level of clarity. Edges in these images tend to be darker and the overall contrast is also higher. Overall, they differ from the original images, but are definitely more sharp than the blurred version. </p>
+
+<h3> Part 2.2</h3>
+<p> To create hybrid images, we can take the high frequency components of one image and low frequency images of another and combine them. The result is an image in which you see different things at different distances from the images. From far away, we see the low frequency parts of the image and from close up, we see the high frequency parts of the image. Since the high and low frequency parts of the hybrid are from different images, we will see different things! </p>
+
+<h4> Derek Nutmeg </h4>
+<div class="row">
+  <div class="column4">
+    <img src="DerekPicture.jpg" alt="Derek" height=300>
+    <p> Derek (Low Frequency) </p>
+  </div>
+  <div class="column4">
+    <img src="nutmeg.jpg" alt="Nutmeg" height=300>
+    <p> Nutmeg (High Frequency) </p>
+  </div>
+  <div class="column4">
+    <img src="nutmeDerekPictur3.jpg" alt="Gray NutmegDerek" height=300>
+    <p> NutmegDerek (Grayscale) </p>
+  </div>
+  <div class="column4">
+    <img src="nutmeDerekPictur2.jpg" alt="Colored NutmegDerek" height=300>
+    <p> NutmegDerek (Colored) </p>
+  </div>
+</div>
+
+<p> Generally, it may be better to use a grayscaled image for the low frequency parts since the high frequency parts has less saturation so close up the color from the low frequency parts might overpower the high frequency parts. However, the results can be good with both colored as well! </p>
+
+<h4> Lionardo </h4>
+<div class="row">
+  <div class="column3">
+    <img src="leo.jpeg" alt="Leo" height=300>
+    <p> Leonardo </p>
+  </div>
+  <div class="column3">
+    <img src="lion.jpeg" alt="Lion" height=300>
+    <p> Lion </p>
+  </div>
+  <div class="column3">
+    <img src="lionleo.jpg" alt="Lionardo" height=300>
+    <p> Lionardo </p>
+  </div>
+</div>
+
+<h4> Fourier Analysis: </h4>
+<div class="row">
+  <div class="column5">
+    <img src="leo_freq.jpeg" alt="Leo Freq" height=200>
+    <p> Leonardo </p>
+  </div>
+  <div class="column5">
+    <img src="lion_freq.jpeg" alt="Lion Freq" height=200>
+    <p> Lion </p>
+  </div>
+  <div class="column5">
+    <img src="leo_filter_freq.jpeg" alt="Filtered Leo Freq" height=200>
+    <p> Filtered Leonardo </p>
+  </div>
+  <div class="column5">
+    <img src="lion_filter_freq.jpeg" alt="Filtered Lion Freq" height=200>
+    <p> Filtered Lion </p>
+  </div>
+  <div class="column5">
+    <img src="lionleo_freq.jpeg" alt="Lionardo Freq" height=200>
+    <p> Lionardo </p>
+  </div>
+</div>
+
+<h4> Here are some more samples: </h4>
+
+<h4> Morphed Expression </h4>
+<div class="row">
+  <div class="column3">
+    <img src="happy.jpeg" alt="Happy" height=300>
+    <p> Happy Expression </p>
+  </div>
+  <div class="column3">
+    <img src="neutral.jpeg" alt="Neutral" height=300>
+    <p> Neutral Expression </p>
+  </div>
+  <div class="column3">
+    <img src="neutralhappy.jpg" alt="Expression" height=300>
+    <p> Morphed Expression </p>
+  </div>
+</div>
+
+<h4> Kitty^2 (Failed Example) </h4>
+<div class="row">
+  <div class="column3">
+    <img src="kitten.jpeg" alt="Kitten" height=300>
+    <p> Kitten </p>
+  </div>
+  <div class="column3">
+    <img src="kitty.jpg" alt="Hello Kitty" height=300>
+    <p> Hello Kitty </p>
+  </div>
+  <div class="column3">
+    <img src="kittkitten.jpg" alt="Kitty^2" height=300>
+    <p> Kitty^2 </p>
+  </div>
+</div>
+
+<p> Kitty^2 did not do very well since the proportions of the two images did not line up very well and Hello Kitty's outline was very simple so it did not work well as a high frequency component. Even close up, the kitten overpowered Hello Kitty. </p>
+
+<h5> chimera time... </h5>
+<div class="row">
+  <div class="column2">
+    <img src="nina2chimera2.jpg" alt="Chimera" height=200>
+  </div>
+  <div class="column2">
+    <img src="ninaalexander.jpg" alt="Alexander" height=200>
+  </div>
+</div>
+
+<h3> Part 2.3 </h3>
+<p> In this part, Gaussian and Laplacian stacks are created. Gaussian stacks repeated applies the Gaussian filter to the image at each level while Laplacian stacks takes the high frequency components (previous image - blurred image) at each level. </p>
+
+<h4> My recreation of the outcomes of Figure 3.42 </h4>
+<p> Masked Apple Gaussian and Laplacian Stacks: </p>
+<img src="apple_maskedGaussian.jpg" height=200>
+<img src="apple_maskedLaplacian.jpg" height=200>
+
+<p> Masked Orange Gaussian and Laplacian Stacks: </p>
+<img src="orange_maskedGaussian.jpg" height=200>
+<img src="orange_maskedLaplacian.jpg" height=200>
+
+<p> Oraple Gaussian and Laplacian Stacks: </p>
+<img src="appleorange_gaussianBlend.jpg" height=200>
+<img src="appleorange_laplacianBlend.jpg" height=200>
+
+<h3> Part 2.4 </h3>
+<p> Finally, following the algorithm from page 230 of the 1983 paper by Burt and Adelson, we can create blended images! With an additional Gaussian stack for the mask, we are able to create smooth blending of two images without noticeable seams. </p>
+
+<h4> First and Foremost: the ORAPLE! </h4>
+<div class="row">
+  <div class="column3">
+    <img src="apple.jpeg" alt="Apple" height=300>
+    <p> Apple </p>
+  </div>
+  <div class="column3">
+    <img src="orange.jpeg" alt="Orange" height=300>
+    <p> Orange </p>
+  </div>
+  <div class="column3">
+    <img src="appleorange_blend.jpg" alt="Oraple" height=300>
+    <p> Oraple </p>
+  </div>
+</div>
+
+<h4> The Moonkie </h4>
+<div class="row">
+  <div class="column3">
+    <img src="mooncake.jpeg" alt="Mooncake" height=300>
+    <p> Mooncake </p>
+  </div>
+  <div class="column3">
+    <img src="cookie.jpeg" alt="Cookie" height=300>
+    <p> Cookie </p>
+  </div>
+  <div class="column3">
+    <img src="mookie.jpg" alt="Moonkie" height=300>
+    <p> Moonkie </p>
+  </div>
+</div>
+
+<p> Masked Mooncake Gaussian and Laplacian Stacks: </p>
+<img src="mooncake_maskedGaussian.jpg" height=150>
+<img src="mooncake_maskedLaplacian.jpg" height=150>
+
+<p> Masked Cookie Gaussian and Laplacian Stacks: </p>
+<img src="cookie_maskedGaussian.jpg" height=150>
+<img src="cookie_maskedLaplacian.jpg" height=150>
+
+<p> Moonkie Gaussian and Laplacian Stacks: </p>
+<img src="mooncakecookie_gaussianBlend.jpg" height=150>
+<img src="mooncakecookie_laplacianBlend.jpg" height=150>
+
+<h4> Smiling Hnad (Irregular Mask) </h4>
+<div class="row">
+  <div class="column3">
+    <img src="hand.jpeg" alt="Hand" height=300>
+    <p> Hand </p>
+  </div>
+  <div class="column3">
+    <img src="smile.jpeg" alt="Smile" height=300>
+    <p> Smile </p>
+  </div>
+  <div class="column3">
+    <img src="handsmile.jpg" alt="Smiling Hand" height=300>
+    <p> Smiling Hand </p>
+  </div>
+</div>
+
+<p> Masked Hand Gaussian and Laplacian Stacks: </p>
+<img src="hand_maskedGaussian.jpg" height=150>
+<img src="hand_maskedLaplacian.jpg" height=150>
+
+<p> Masked Smile Gaussian and Laplacian Stacks: </p>
+<img src="smile_maskedGaussian.jpg" height=150>
+<img src="smile_maskedLaplacian.jpg" height=150>
+
+<p> Smiling Hand Gaussian and Laplacian Stacks: </p>
+<img src="handsmile_gaussianBlend.jpg" height=150>
+<img src="handsmile_laplacianBlend.jpg" height=150>
+
+<h4> GiraffeHorse (Irregular Mask) </h4>
+<div class="row">
+  <div class="column3">
+    <img src="giraffe.jpeg" alt="Giraffe" height=300>
+    <p> Giraffe </p>
+  </div>
+  <div class="column3">
+    <img src="horse.jpeg" alt="Horse" height=300>
+    <p> Horse Head </p>
+  </div>
+  <div class="column3">
+    <img src="giraffehorse.jpg" alt="GiraffeHorse" height=300>
+    <p> GiraffeHorse </p>
+  </div>
+</div>
+
+<h4> Project Takeaways: </h4>
+<p> From this project I learned just how much we can do with image frequencies! We were able to blur and sharpen images, make hybrids, and create blended images. It was also interesting to see how different parameters that we select (kernel size, sigma, etc) can greatly affect our results, and quite some experimenting is needed to find something that works well. Overall, this project was super fun, and I will probably be making more nightmare-inducing images in my free time... </p>
+
+</body>
+</html>

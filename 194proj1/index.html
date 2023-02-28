@@ -1,0 +1,185 @@
+<h1><center> CS 194-26: Project 1 </h2>
+<h3><center> Tracy Xia </h3>
+
+<h4> Project Overview and Approach </h4>
+<p>	This project turns digitized glass plate image by Prokudin-Gorskii into colored images using image processing techniques. The three color channels are extracted, then placed on top of each other, aligning them properly to create a colored image.</p>
+<p>	First, I created a simple algorithm that will align low-res images. In this step, I first created a cropped version of the input images so that the outer edges (10 pixels) is excluded from the score calculations to account for any imperfect edges in the images. Different displacements within a [-15, 15] search window are scored using NCC and compared with each other to find the best scoring alignment. The best scoring displacement is then performed on the original image and returned. </p>
+<p>	To speed up the process, I implemented a pyramid such that for high-res images, they are recursively rescaled by a factor of 0.5 until the image is small enough to run on the simple alignment within the [-15, 15] search window. Then for each finer image, the simple alignment is performed within a [-2, 2] search window instead, updating the estimated displacement. Finally, the best displacement is returned. For most images, the algorithm works while a select few (ex. Emir and Cathedral) has alignment issues since the borders in the images may influence the score calculations.</p>
+
+<h4> Bells and Whistles </h4>
+<p>	In order to improve the alignment, I also implemented white edge cropping which helps eliminate the white edges from the score calculations and alignment. This is done on the overall image before the color channels are separated from each other. Edges are detected by searching each row or column of pixels starting from the outermost edges and calculating the ratio of pixels that are over some value. If the ratio is over some threshold, it is part of the white edge and removed from the input image. With the removal of the white edges, the images that were originally fuzzy or poorly aligned are now properly aligned and clear.</p>
+<p>	Lastly, for solely aesthetic purposes, I implemented an additional edge crop that removes the black edges from the final colored image. Edges are detected similarly to the white edges, except there is an additional ratio check of blocks of pixels (multiple rows or columns of pixels at once) in order to account for markings from the original image that may stop edge detection prematurely if searching only one row or column at a time. This edge cropping is done after alignment, so it does not affect the alignment algorithm.</p>
+
+<h2> Images with Cropping </h2>
+
+<h4> Cathedral </h4>
+<p> green displacement (x, y):  2 -1 </p>
+<p> red displacement (x, y):  3 0 </p>
+<img src="crop/cathedral.jpeg" height=300>
+
+<h4> Monastery </h4>
+<p> green displacement (x, y):  2 -10 </p>
+<p> red displacement (x, y):  2 -11 </p>
+<img src="crop/monastery.jpeg" height=300>
+
+<h4> Tobolsk </h4>
+<p> green displacement (x, y):  2 -1 </p>
+<p> red displacement (x, y):  3 -2 </p>
+<img src="crop/tobolsk.jpeg" height=300>
+
+<h4> Church </h4>
+<p> green displacement (x, y):  -6 -15 </p>
+<p> red displacement (x, y):  -6 -19 </p>
+<img src="crop/church.jpeg" height=300>
+
+<h4> Icon </h4>
+<p> green displacement (x, y):  17 -10 </p>
+<p> red displacement (x, y):  22  -10 </p>
+<img src="crop/icon.jpeg" height=300>
+
+<h4> Harvesters </h4>
+<p> green displacement (x, y):  15 -2 </p>
+<p> red displacement (x, y):  14 6 </p>
+<img src="crop/harvesters.jpeg" height=300>
+
+<h4> Onion Church </h4>
+<p> green displacement (x, y):  25 -23 </p>
+<p> red displacement (x, y):  36 -42 </p>
+<img src="crop/onion_church.jpeg" height=300>
+
+<h4> Sculpture </h4>
+<p> green displacement (x, y):  -11 -40 </p>
+<p> red displacement (x, y):  -26 -7 </p>
+<img src="crop/sculpture.jpeg" height=300>
+
+<h4> Emir </h4>
+<p> green displacement (x, y):  24 -26 </p>
+<p> red displacement (x, y):  42 -46 </p>
+<img src="crop/emir.jpeg" height=300>
+
+<h4> Three Generations </h4>
+<p> green displacement (x, y):  12 -16 </p>
+<p> red displacement (x, y):  9 -29 </p>
+<img src="crop/three_generations.jpeg" height=300>
+
+<h4> Lady </h4>
+<p> green displacement (x, y):  1 -18 </p>
+<p> red displacement (x, y):  -2 -41 </p>
+<img src="crop/lady.jpeg" height=300>
+
+<h4> Melons </h4>
+<p> green displacement (x, y):  8 -3 </p>
+<p> red displacement (x, y):  12 9 </p>
+<img src="crop/melons.jpeg" height=300>
+
+<h4> Self Portrait </h4>
+<p> green displacement (x, y):  27 -16 </p>
+<p> red displacement (x, y):  35 -12 </p>
+<img src="crop/self_portrait.jpeg" height=300>
+
+<h4> Train </h4>
+<p> green displacement (x, y):  2 -19 </p>
+<p> red displacement (x, y):  30 -31 </p>
+<img src="crop/train.jpeg" height=300>
+
+<h4> Field </h4>
+<p> green displacement (x, y):  0 -1 </p>
+<p> red displacement (x, y):  0 -1 </p>
+<img src="crop/field.jpeg" height=300>
+
+<h4> Gold </h4>
+<p> green displacement (x, y):  9 -9 </p>
+<p> red displacement (x, y):  12 -12 </p>
+<img src="crop/gold.jpeg" height=300>
+
+<h4> Wood </h4>
+<p> green displacement (x, y):  20 -23 </p>
+<p> red displacement (x, y):  32 -35 </p>
+<img src="crop/wood.jpeg" height=300>
+
+<h2> Images without Cropping </h2>
+
+<h4> Cathedral </h4>
+<p> green displacement (x, y):  2 5 </p>
+<p> red displacement (x, y):  3 3 </p>
+<img src="no_crop/cathedral.jpeg" height=300>
+
+<h4> Monastery </h4>
+<p> green displacement (x, y):  2 -3 </p>
+<p> red displacement (x, y):  2 3 </p>
+<img src="no_crop/monastery.jpeg" height=300>
+
+<h4> Tobolsk </h4>
+<p> green displacement (x, y):  2 3 </p>
+<p> red displacement (x, y):  3 6 </p>
+<img src="no_crop/tobolsk.jpeg" height=300>
+
+<h4> Church </h4>
+<p> green displacement (x, y):  -5 0 </p>
+<p> red displacement (x, y):  -13 18 </p>
+<img src="no_crop/church.jpeg" height=300>
+
+<h4> Icon </h4>
+<p> green displacement (x, y):  16 42 </p>
+<p> red displacement (x, y):  22 88 </p>
+<img src="no_crop/icon.jpeg" height=300>
+
+<h4> Harvesters </h4>
+<p> green displacement (x, y):  10 59 </p>
+<p> red displacement (x, y):  8 122 </p>
+<img src="no_crop/harvesters.jpeg" height=300>
+
+<h4> Onion Church </h4>
+<p> green displacement (x, y):  22 52 </p>
+<p> red displacement (x, y):  35 108 </p>
+<img src="no_crop/onion_church.jpeg" height=300>
+
+<h4> Sculpture </h4>
+<p> green displacement (x, y):  -11 33 </p>
+<p> red displacement (x, y):  -26 140 </p>
+<img src="no_crop/sculpture.jpeg" height=300>
+
+<h4> Emir </h4>
+<p> green displacement (x, y):  10 38 </p>
+<p> red displacement (x, y):  18 30 </p>
+<img src="no_crop/emir.jpeg" height=300>
+
+<h4> Three Generations </h4>
+<p> green displacement (x, y):  5 52 </p>
+<p> red displacement (x, y):  7 107 </p>
+<img src="no_crop/three_generations.jpeg" height=300>
+
+<h4> Lady </h4>
+<p> green displacement (x, y):  -6 56 </p>
+<p> red displacement (x, y):  -17 102 </p>
+<img src="no_crop/lady.jpeg" height=300>
+
+<h4> Melons </h4>
+<p> green displacement (x, y):  4 83 </p>
+<p> red displacement (x, y):  8 178 </p>
+<img src="no_crop/melons.jpeg" height=300>
+
+<h4> Self Portrait </h4>
+<p> green displacement (x, y):  2 70 </p>
+<p> red displacement (x, y):  2 162 </p>
+<img src="no_crop/self_portrait.jpeg" height=300>
+
+<h4> Train </h4>
+<p> green displacement (x, y):  -2 42 </p>
+<p> red displacement (x, y):  18 90 </p>
+<img src="no_crop/train.jpeg" height=300>
+
+<h4> Field </h4>
+<p> green displacement (x, y):  0 7 </p>
+<p> red displacement (x, y):  0 15 </p>
+<img src="no_crop/field.jpeg" height=300>
+
+<h4> Gold </h4>
+<p> green displacement (x, y):  -3 66 </p>
+<p> red displacement (x, y):  -11 146 </p>
+<img src="no_crop/gold.jpeg" height=300>
+
+<h4> Wood </h4>
+<p> green displacement (x, y):  17 48 </p>
+<p> red displacement (x, y):  31 102 </p>
+<img src="no_crop/wood.jpeg" height=300>

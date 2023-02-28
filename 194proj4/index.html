@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+.column4 {
+  float: left;
+  width: 25%;
+  padding: 5px;
+}
+
+.column2 {
+  float: left;
+  width: 50%;
+  padding: 5px;
+}
+
+.column3 {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+}
+
+.column5 {
+  float: left;
+  width: 20%;
+  padding: 5px;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+</style>
+</head>
+<body>
+
+<h1><center> CS 194-26: Project 4 </h1>
+<h3><center> Tracy Xia </h3>
+
+<h1> PART A </h1>
+<h2> Shoot the Pictures </h2>
+
+<h4> Zellerbach Hall </h4>
+<div class="row">
+  <div class="column3">
+      <img src="zellerbach1 Large.jpeg" height=300>
+    </div>
+    <div class="column3">
+      <img src="zellerbach2 Large.jpeg" height=300>
+    </div>
+    <div class="column3">
+      <img src="zellerbach3 Large.jpeg" height=300>
+    </div>
+</div>
+
+<h4> Lower Sproul Stairs </h4>
+<div class="row">
+  <div class="column2">
+      <img src="lowersproul2 Large.jpeg" height=300>
+    </div>
+    <div class="column2">
+      <img src="lowersproul1 Large.jpeg" height=300>
+    </div>
+</div>
+
+<h4> Bridge Behind Dwinelle </h4>
+<div class="row">
+  <div class="column2">
+      <img src="bridge1.jpeg" height=300>
+    </div>
+    <div class="column2">
+      <img src="bridge2.jpeg" height=300>
+    </div>
+</div>
+
+<h4> Lights </h4>
+<div class="row">
+  <div class="column2">
+      <img src="lights1.jpeg" height=300>
+    </div>
+    <div class="column2">
+      <img src="lights2.jpeg" height=300>
+    </div>
+</div>
+
+<h2> Recovering Homographies and Warping the Images</h2>
+<p>	In this part, we recover the homography. First, we have p' = Hp where p' is a vector [wx', wy', w].T and x' and y' are the destination x and y coordinates. Similarly, p is a vector [x, y, 1].T with x and y as the starting x and y coordinates. In the 3x3 homography matrix, we let i=1, thus we only need to solve for the remaining 8 unknowns. Writing out the matrix multiplication of p' = Hp, we can obtain our set of equations. Substitute each equation for w into our equations of wx' and wy' to find the equations for x' and y'. We can then write a system of linear equations Ah = b where h is [a b c d e f g h].T, and A and b should be written such that each row of A multiplied by h gets as an equation for a x' value or y' value.</p>
+<p> Now that we have the homographies, we can warp the images. First we have to pipe each corner of the original image through H, and we can use these coordinates to predict the bounding box. Then we can apply an inverse warp and interpolate to get the warped image. </p>
+
+<h4>  Warping Left and Right Zellerbach Images onto the Middle Image </h4>
+<div class="row">
+  <div class="column3">
+    <img src="warped_left.jpg" height=300>
+  </div>
+  <div class="column3">
+    <img src="zellerbach2 Large.jpeg" height=300>
+  </div>
+  <div class="column3">
+    <img src="warped_right.jpg" height=300>
+  </div>
+</div>
+
+<h4>  Warping Left Sproul Image onto Right Sproul Image </h4>
+<div class="row">
+  <div class="column2">
+    <img src="warped_sproul.jpg" height=300>
+  </div>
+  <div class="column2">
+    <img src="lowersproul1 Large.jpeg" height=300>
+  </div>
+</div>
+
+<h4>  Warping Left Bridge Image onto Right Bridge Image </h4>
+<div class="row">
+  <div class="column2">
+    <img src="warped_bridge.jpg" height=300>
+  </div>
+  <div class="column2">
+    <img src="bridge2.jpeg" height=300>
+  </div>
+</div>
+
+<h4>  Warping Left Light Image onto Right Light Image </h4>
+<div class="row">
+  <div class="column2">
+    <img src="warped_lights.jpg" height=300>
+  </div>
+  <div class="column2">
+    <img src="lights2.jpeg" height=300>
+  </div>
+</div>
+
+<h2> Image Rectification </h2>
+<p> We can rectify an image by taking an image with a planar surface, selecting its corners, then defining a set of correspondences for our homography so that we can warp our image onto the this set of correspondences.</p>
+
+<h4> Straightening a Post-it </h4>
+<div class="row">
+  <div class="column3">
+    <img src="postit.jpeg" height=300>
+  </div>
+  <div class="column3">
+    <img src="postit_rect.jpg" height=300>
+  </div>
+    <div class="column3">
+    <img src="postit_rect copy.jpg" height=300>
+  </div>
+</div>
+
+<h4> Straightening a Folder </h4>
+<div class="row">
+  <div class="column3">
+    <img src="folder.jpeg" height=300>
+  </div>
+  <div class="column3">
+    <img src="folder_rect.jpg" height=300>
+  </div>
+    <div class="column3">
+    <img src="folder_rect copy.jpg" height=300>
+  </div>
+</div>
+
+<h4> Straightening a Slide </h4>
+<div class="row">
+  <div class="column3">
+    <img src="slide Large.jpeg" height=300>
+  </div>
+  <div class="column3">
+    <img src="slide_rect.jpg" height=300>
+  </div>
+    <div class="column3">
+    <img src="slide_rect copy.jpg" height=300>
+  </div>
+</div>
+
+<h2> Blending Images into a Mosaic </h2>
+<p> In this part, I stitch and blend together the images. First, I stitch together the warped image and the unwarped image by calculating the image offsets and combined dimensions. Then I position each image onto the combined dimensions and blend. For blending, I start at an overlapping point in the two images with alpha = 1 for the warped image. I slowly decrease alpha until alpha = 0. To avoid strange wedges from blending, I only blend the part of the image starting from the top of the unwarped image until the bottom of the unwarped image. Then I stack back the missing parts of the image from the stitch using an edge detection. This helps avoid the wedges where parts of either image was blended together with the black filler space. I repeat the process if the mosaic contains more than 2 images. </p>
+
+<h4> Zellerbach Hall </h4>
+<div class="row">
+  <div class="column3">
+    <img src="zellerbach1 Large.jpeg" height=300>
+  </div>
+  <div class="column3">
+    <img src="zellerbach2 Large.jpeg" height=300>
+  </div>
+  <div class="column3">
+    <img src="zellerbach3 Large.jpeg" height=300>
+  </div>
+</div>
+
+<img src="blend2.jpg" height=300>
+<img src="blend2 copy.jpg" height=300>
+
+<h4> Lower Sproul Stairs </h4>
+<div class="row">
+  <div class="column3">
+    <img src="lowersproul2 Large.jpeg" height=300>
+  </div>
+    <div class="column3">
+    <img src="blend_sproul.jpg" height=300>
+  </div>
+  <div class="column3">
+    <img src="lowersproul1 Large.jpeg" height=300>
+  </div>
+</div>
+
+<img src="blend_sproul copy.jpg" height=300>
+
+<h4> Bridge Behind Dwinelle </h4>
+<div class="row">
+  <div class="column3">
+    <img src="bridge1.jpeg" height=300>
+  </div>
+    <div class="column3">
+    <img src="blend_bridge.jpg" height=300>
+  </div>
+  <div class="column3">
+    <img src="bridge2.jpeg" height=300>
+  </div>
+</div>
+
+<img src="blend_bridge copy.jpg" height=300>
+
+<h4> Lights </h4>
+<div class="row">
+  <div class="column3">
+    <img src="lights1.jpeg" height=300>
+  </div>
+    <div class="column3">
+    <img src="blend_lights.jpg" height=300>
+  </div>
+  <div class="column3">
+    <img src="lights2.jpeg" height=300>
+  </div>
+</div>
+
+<img src="blend_lights copy.jpg" height=300>
+
+<h1> PART B </h1>
+<h2> Detecting Corner Features </h2>
+<p> Harris Point Detection </p>
+
+<h4> Alumni House </h4>
+<div class="row">
+  <div class="column2">
+    <img src="a1h.jpg" height=300>
+  </div>
+  <div class="column2">
+    <img src="a2h.jpg" height=300>
+  </div>
+</div>
+
+<h2> ANMS </h2>
+<p> Selecting (Top 500) interest points using ANMS </p>
+
+<h4> Alumni House </h4>
+<div class="row">
+  <div class="column2">
+    <img src="a1a.jpg" height=300>
+  </div>
+  <div class="column2">
+    <img src="a2a.jpg" height=300>
+  </div>
+</div>
+
+<h2> Feature Descriptor Extraction and Feature Matching </h2>
+<p> Extract 8x8 patches, downsamples from 40x40 patches and normalized. Then using the feature descriptors, find pairs of similar features to get pairs of matching points </p>
+
+<h4> Alumni House </h4>
+<div class="row">
+  <div class="column2">
+    <img src="a1m.jpg" height=300>
+  </div>
+  <div class="column2">
+    <img src="a2m.jpg" height=300>
+  </div>
+</div>
+
+<h2> RANSAC</h2>
+<p> Further filter matched points to rid of outliers </p>
+
+<h4> Alumni House </h4>
+<div class="row">
+  <div class="column2">
+    <img src="a1r.jpg" height=300>
+  </div>
+  <div class="column2">
+    <img src="a2r.jpg" height=300>
+  </div>
+</div>
+
+<h2> Mosaic </h2>
+<p> Stitch together images as in Part A </p>
+
+<h4> Alumni House </h4>
+<div class="row">
+  <div class="column3">
+    <img src="alumni1.jpeg" height=300>
+  </div>
+  <div class="column3">
+    <img src="alumni_blend.jpg" height=300>
+  </div>
+  <div class="column3">
+    <img src="alumni2.jpeg" height=300>
+  </div>
+</div>
+
+<img src="alumni_blend copy.jpg" height=300>
+
+<h4> Room </h4>
+<div class="row">
+  <div class="column3">
+    <img src="room1.jpeg" height=300>
+  </div>
+  <div class="column3">
+    <img src="room_blend.jpg" height=300>
+  </div>
+  <div class="column3">
+    <img src="room2.jpeg" height=300>
+  </div>
+</div>
+
+<img src="room_blend copy.jpg" height=300>
+
+<h4> Bridge Behind Dwinelle (Again) </h4>
+<div class="row">
+  <div class="column3">
+    <img src="bridge1.jpeg" height=300>
+  </div>
+  <div class="column3">
+    <img src="bridge_auto.jpg" height=300>
+  </div>
+  <div class="column3">
+    <img src="bridge2.jpeg" height=300>
+  </div>
+</div>
+
+<h4> Comparison </h4>
+<div class="row">
+  <div class="column2">
+    <img src="bridge_auto copy.jpg" height=300>
+    <p> Auto </p>
+  </div>
+  <div class="column2">
+    <img src="blend_bridge copy.jpg" height=300>
+    <p> Manual </p>
+  </div>
+</div>
+
+
+
+<p> </p>
+<h2> What I Learned </h2>
+<p> This project was super cool overall, but if I had to pick something I thought was the coolest it has to be the automatic point matching. It was fun to see the process of how the points get filtered down and how we can match the features by comparing patches. The auto selected points are definitely more precise than the manual one. </p>
+
+
+</body>
+</html>

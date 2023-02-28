@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+.column4 {
+  float: left;
+  width: 25%;
+  padding: 5px;
+}
+
+.column2 {
+  float: left;
+  width: 50%;
+  padding: 5px;
+}
+
+.column3 {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+}
+
+.column5 {
+  float: left;
+  width: 20%;
+  padding: 5px;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+</style>
+</head>
+<body>
+
+<h1><center> CS 194-26: Final Projects </h1>
+<h2><center> Lightfield Camera and Gradient Domain Fusion </h1>
+<h3><center> Tracy Xia </h3>
+
+<h1> Lightfield Camera </h1>
+<h2> Part 1: Depth Refocusing </h2>
+<p> The objects that are further from the camera do not change much in their positions while nearby objects vary more significantly in their positions. Thus if we average all images in the grid together we should obtain an image where further objects are focused while nearby objects are blurred.</p>
+
+<h4> Average of All Images in the Grid </h4>
+<img src="chess/avg0.jpg" width=400>
+
+<p> By applying an appropriate shift to all the images and then averaging, we can obtain images focused at different depths of the image. We can achieve this affect by shifting each image by the difference between their positions on the grid and the position of the "middle" image, at the 8x8 grid. The position of each image in the grid is given in the filenames of each image, which can be extracted for the calculation. To move the focus, we multiple the shifts by different constants. For example, in the chess image we can increase the constant to move the focus closer to the camera (downards in the images). Increasing the shift will make the image align at different depths, but we have to be selective about the range of constants. If the constant is too small or too large the average image will become blurred. </p>
+
+<h4> Chess: Constants 0 to 3 </h4>
+<img src="chess_refocus.gif" width=400>
+
+<h4> Chess: Constant 4 </h4>
+<img src="chess/avg4.jpg" width=400>
+<p> When we shift too much the image is blurred </p>
+
+<h4> Jellybean: Constants 0 to -5 </h4>
+<img src="jellybean_refocus.gif" width=400>
+<p> For the jellybean images, the focus is actually at the object near the camera when we perform no shifts. The positions of objects further away vary more while the positions of objects near the camera is focused. Thus, I used negative constants to move the depth of focus further away (upwards in the images).
+
+<h2> Part 2: Aperture Adjustment </h2>
+<p> In this part we mimic a camera with a larger aperture by averaging the images in the grid that is perpendicular to the optical axis. Fewer images mimics a smaller aperture while more images mimics a larger image. </p>
+
+<h4> Chess: Up to Radius of 7 </h4>
+<img src="chess_aperture.gif" width=400>
+
+<h4> Jellybean: Up to Radius of 7 </h4>
+<img src="jellybean_aperture.gif" width=400>
+
+<h2> Part 3: Summary </h2>
+<p> From the project I learned that when we have multiple images taken over a regularly spaced grid, we are able to create images focused at different depths. We can do this by shifting the images appropriately. We are also able to mimic different apertures by choosing different numbers of perpendicular images (to the optical axis). </p>
+
+
+
+<h1> Gradient Domain Fusion </h1>
+<p> In this project, we aim to seamless blend a part of a source image onto the target image by formulating our objective into a least squares problem and solving that. We use poisson blending, where we are focusing on the gradients of the image and ignoring the overall intensity of our source image. </p>
+
+<h2> Part 1: Toy Problem </h2>
+<p> In the toy problem, we recconstruct the grayscaled image of Woody and Buzz by using all of the x and y gradients and one additional pixel (in the top left corner). We use these as our constraints when solving the least squares problem. </p>
+
+<h4> Original Toy Image vs Reconstructed Toy Image</h4>
+<div class="row">
+  <div class="column2">
+      <img src="toy_problem.png" width=250>
+      <p> Original </p>
+    </div>
+    <div class="column2">
+      <img src="toy_reconstructed.jpg" width=250>
+      <p> Reconstructed </p>
+    </div>
+</div>
+
+<h2> Part 2: Poisson Blending </h2>
+<p> First, I aligned my source image to the portion of the target image that I want to blend it onto. Then I select the regions of the source image that I want to blend to create a mask and obtain the pixel coordinates within the mask. </p>
+
+<p> Now for poisson blending, we need to solve the following constraints: </p>
+<img src="constraints.jpg" width=500>
+<p> This is similar to the toy problem, except we need to account for all four neighbors of each pixel in the mask. While the first part is solved similarly as in the toy problem, we refer to the second part of the equation if a neighbor is not within the mask. In this case we don't need to solve for v_j, so we can take the intensity value directly from the corresponding pixel in the target image. Unlike the toy problem, we do not need the extra constraint of top left pixel intensity here. For all pixels not in the mask, we use the target pixels. After solving for the values of the new image, we paste it into our target image at the correct coordinates. </p>
+
+<h3><center> Penguin Hike </h3>
+<center><img src="penguinski/penguinski.jpg" width=400> </center>
+<div class="row"> <center>
+  <div class="column2">
+    <p> Source: Penguin </p>
+    <img src="penguin.jpg" height=200>
+  </div>
+  <div class="column2">
+    <p> Target: Hiking on Snowy Hill </p>
+    <img src="im3 Large.jpeg" height=200>
+  </div>
+</div>
+<p> &nbsp </p>
+<h3><center> Swimming Polar Bear </h3>
+<center><img src="swimming_polarbear/swimming_polarbear.jpg" width=400> </center>
+<div class="row"> <center>
+  <div class="column2">
+    <p> Source: Polar Bear </p>
+    <img src="polar_bear.jpg" height=200>
+  </div>
+  <div class="column2">
+    <p> Target: Swimming Pool </p>
+    <img src="pool.jpg" height=200>
+  </div>
+</div>
+<p> &nbsp </p>
+<h3><center> Space Orca </h3>
+<center><img src="space_orca/space_orca.jpg" width=400> </center>
+<div class="row"> <center>
+  <div class="column2">
+    <p> Source: Orca </p>
+    <img src="orca.jpg" height=200>
+  </div>
+  <div class="column2">
+    <p> Target: Space </p>
+    <img src="galaxy.jpg" height=200>
+  </div>
+</div>
+<p> &nbsp </p>
+
+<h3><center>Here are some examples with not as good results </h3>
+
+<center><img src="rainbowisland/rainbow_island2.jpg" height=200></center>
+<p><center> The mask selected here included too much of the source background</center></p>
+
+<center><img src="space_dolphins/space_dolphins.jpg" height=200></center>
+<p><center> Perhaps due to the background of the dolphin source image being too different from the galaxy image, the dolphins turned red.</center></p>
+
+
+<h2> Bells and Whistles: Mixed Gradients </h2>
+<p> Mixed Gradients is similar to Poisson Blending, except instead of always using the gradients of the source image, we instead use the gradients from either the source of target images with the larger magnitude. This method gives the source image some transparency and does not completely cover the target image at the mask region.</p>
+
+<h3><center> Writing on Brick Wall </h3>
+<center><img src="mixed_gradients/brick_writing.jpg" width=300> 
+  <div class="row"> <center>
+  <div class="column2">
+    <p> Source: Whiteboard Writing </p>
+    <img src="deltaf.jpeg" height=200>
+  </div>
+  <div class="column2">
+    <p> Target: Brick Wall </p>
+    <img src="brickwall.jpeg" height=200>
+  </div>
+</div>
+<p> &nbsp </p>
+<h3><center> Drawing on Wall </h3>
+<center><img src="mixed_gradients/wall_donkey.jpg" width=400> 
+  <div class="row"> <center>
+  <div class="column2">
+    <p> Source: Drawing </p>
+    <img src="donkey.jpeg" height=200>
+  </div>
+  <div class="column2">
+    <p> Target: Wall </p>
+    <img src="wall.jpg" height=200>
+  </div>
+</div>
+<p> &nbsp </p>
+<h3><center> Rainbow Island </h3>
+<center><img src="mixed_gradients/rainbowisland.jpg" height=300> 
+  <div class="row"> <center>
+  <div class="column2">
+    <p> Source: Rainbow </p>
+    <img src="rainbow.jpeg" height=200>
+  </div>
+  <div class="column2">
+    <p> Target: Tropical Island </p>
+    <img src="island.jpeg" height=200>
+  </div>
+</div>
+<p> &nbsp </p>
+
+</body>
+</html>

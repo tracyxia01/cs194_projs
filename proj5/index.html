@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+.column4 {
+  float: left;
+  width: 25%;
+  padding: 5px;
+}
+
+.column2 {
+  float: left;
+  width: 50%;
+  padding: 5px;
+}
+
+.column3 {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+}
+
+.column5 {
+  float: left;
+  width: 20%;
+  padding: 5px;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+</style>
+</head>
+<body>
+
+<h1><center> CS 194-26: Project 5 </h1>
+<h3><center> Tracy Xia </h3>
+
+<h2> Part 1: Nose Tip Detection </h2>
+<p> In this part we first create a custom dataloader to load the images and keypoints. For nose tip detection, we only need to return the nose tip keypoint. The images and read in as grayscale and normalized. Each image is resized to be 80x60. Below are some sampled images with their nose tip keypoints:</p>
+
+<h4> Original Nose Keypoints </h4>
+<img src="orig_nose.png" height=200>
+
+<p> Next, we create a convolutional neural network and train our model. For loss, I used MSE and optimizer was Adam. I used a batch size of 1 and learning rate of 1e-3. I tried using smaller and larger learning rates and different number of epochs. The parameters did not improve the results, either giving similar results or worse results. </p>
+<img src="nosenet.png" height=100>
+
+<h4> MSE Loss (15 Epochs): </h4>
+<img src="mse_nose.png" height=400>
+
+<h4> Good Detections </h4>
+<div class="row">
+  <div class="column2">
+      <img src="nose_good1.png" height=300>
+    </div>
+    <div class="column2">
+      <img src="nose_good2.png" height=300>
+    </div>
+</div>
+
+<h4> Bad Detections </h4>
+<div class="row">
+  <div class="column2">
+      <img src="nose_bad1.png" height=300>
+    </div>
+    <div class="column2">
+      <img src="nose_bad2.png" height=300>
+    </div>
+</div>
+
+<p> For the cases where the person is looking sideways the detections are bad, this is probably due to the data set being small and having a majority where the person is facing forward. </p>
+
+<h4> MSE Loss with smaller learning rate (1e-4) </h4>
+<p> Using a smaller learning rate did improve the performance of my model. </p>
+<img src="mse_nose_small.png" height=400>
+
+<h4> MSE Loss with larger learning rate (1e-2) </h4>
+<p> Using a larger learning rate did improve the performance of my model. </p>
+<img src="mse_big.png" height=400>
+
+
+<h2> Part 2: Full Face Detection </h2>
+<p> In this part we create a custom dataloader again to load the images and keypoints. For full face detection, we will keep all of the 58 keypoints. The images and read in as grayscale and normalized. Each image is resized to be 160x120. This time, each image is also augmented. The augmentation I used was rotating each image and its keypoints about the center by a random degree between -10 and 10. Below are some sampled images with their nose tip keypoints:</p>
+
+<h4> Original Full Face Keypoints </h4>
+<div class="row">
+  <div class="column4">
+    <img src="orig_face1.png" height=200>
+  </div>
+  <div class="column4">
+    <img src="orig_face2.png" height=200>
+  </div>
+  <div class="column4">
+    <img src="orig_face3.png" height=200>
+  </div>
+  <div class="column4">
+    <img src="orig_face4.png" height=200>
+  </div>
+</div>
+
+
+<p> Next, we create a convolutional neural network and train our model. For loss, I used MSE and optimizer was Adam. I used a batch size of 1 and learning rate of 1e-3.</p>
+<img src="facenet.png" height=100>
+
+<h4> MSE Loss (20 Epochs): </h4>
+<img src="mse_face.png" height=400>
+
+<h4> Good Detections </h4>
+<div class="row">
+  <div class="column2">
+      <img src="face_good1.png" height=300>
+    </div>
+    <div class="column2">
+      <img src="face_good2.png" height=300>
+    </div>
+</div>
+
+<h4> Bad Detections </h4>
+<div class="row">
+  <div class="column2">
+      <img src="face_bad1.png" height=300>
+    </div>
+    <div class="column2">
+      <img src="face_bad2.png" height=300>
+    </div>
+</div>
+
+<p> Similar to the nose tip detection, images where the person is looking sideways yielded worse results, also likely do the dataset containing more images of persons facing the front. </p>
+
+<p> Conv1 </p>
+<img src="conv1.png" width=600>
+<p> Conv2 </p>
+<img src="conv2.png" width=600>
+<p> Conv3 </p>
+<img src="conv3.png" width=600>
+<p> Conv4 </p>
+<img src="conv4.png" width=600>
+<p> Conv5 </p>
+<img src="conv5.png" width=600>
+
+
+<h2> Part 3: Larger Dataset </h2>
+<p> In this part we train a model on a larger dataset. Each image from the dataset is cropped based on the corresponding bounding boxes, which I scaled by a factor of 0.5 so that the majority of landmarks will remain inside the image after cropping. The keypoints are also adjusted to the crop. Each image is also resized to be 224x224 for training. I did not apply any augmentations to the images for this part because it seemed to slow my training down significantly. For the model, I used ResNet18, modified so that conv1 has input channel of 1 and fc has output channel of 136. I directly modified the model's layers and made no other changes. I used a batch size of 32, learning rate of 1e-3, and epoch of 15. I tried some other batch sizes and also adding an additional output layer (instead of directly modifying) but the results either yielded similar or worse MSE. The training took a while to run, but perhaps more epochs could have improved the results. </p>
+
+<img src="resnet1.png" width=400>
+<img src="resnet2.png" width=400>
+
+<h4> MSE Loss (15 Epochs): </h4>
+<img src="mse_large4.png" height=400>
+
+<h4> Some Good Test Set Examples </h4>
+<div class="row">
+    <div class="column3">
+      <img src="test2_large8.png" height=300>
+    </div>
+    <div class="column3">
+      <img src="test2_large12.png" height=300>
+    </div>
+    <div class="column3">
+      <img src="test2_large4.png" height=300>
+    </div>
+</div>
+
+<h4> Flipped Images </h4>
+<div class="row">
+  <div class="column2">
+      <img src="test2_large2.png" height=300>
+    </div>
+    <div class="column2">
+      <img src="test2_large10.png" height=300>
+    </div>
+</div>
+
+<p> The flipped images had similar predicted landmarks, but the one on the right seems more accurate. Additionally from the other examples, it seems that the model tends to predict a face that is turned slighty to the left (from viewer perspective). </p>
+
+
+<h4> Some Not Very Good Test Set Examples </h4>
+<div class="row">
+  <div class="column2">
+      <img src="test2_large1.png" height=300>
+    </div>
+    <div class="column2">
+      <img src="test2_large5.png" height=300>
+    </div>
+</div>
+
+<p> The model does not do very well with faces that are more turned to the side. </p>
+
+<div class="row">
+  <div class="column2">
+      <img src="test2_large9.png" height=300>
+    </div>
+    <div class="column2">
+      <img src="test2_large11.png" height=300>
+    </div>
+</div>
+
+<p> The two examples above both have predicted landmarks where the eyebrows and eyes are shifted down while the remaining landmarks seem reasonable. A reason why this may have happened is because both of these examples had very dark eyelid creases and dark shadows underneath the eye, which may have been mistaken as the eyebrows and eyes, respectively. </p>
+
+<h4> My Own Images </h4>
+
+<div class="row">
+    <div class="column4">
+      <img src="sample2_1.png" height=250>
+    </div>
+    <div class="column4">
+      <img src="sample2_2.png" height=250>
+    </div>
+    <div class="column4">
+      <img src="sample2_4.png" height=250>
+    </div>
+    <div class="column4">
+      <img src="sample2_3.png" height=250>
+    </div>
+</div>
+
+<p> The model does better on the images where the face is facing front, and poorly on the image where the face is turned. </p>
+
+<h2> Part 4: Pixelwise Classificatoin </h2>
+<p> To create the heatmap for each landmark for the images, I used a 2D Gaussian of kernel size 19 and sigma 3, then place this 2D Gaussian in the map, centered at the ground truth coordinates. </p>
+
+<h4> Accumulated Heatmaps </h4>
+<div class="row">
+    <div class="column4">
+      <img src="heatpic5.png" height=250>
+    </div>
+    <div class="column4">
+      <img src="heatpic2.png" height=250>
+    </div>
+    <div class="column4">
+      <img src="heatpic3.png" height=250>
+    </div>
+    <div class="column4">
+      <img src="heatpic4.png" height=250>
+    </div>
+</div>
+<div class="row">
+    <div class="column4">
+      <img src="heatmap5.png" height=250>
+    </div>
+    <div class="column4">
+      <img src="heatmap2.png" height=250>
+    </div>
+    <div class="column4">
+      <img src="heatmap3.png" height=250>
+    </div> 
+    <div class="column4">
+      <img src="heatmap4.png" height=250>
+    </div>
+</div>
+
+<p> For the model I used UNet, adding a layer right before with input channel 1, output channel 3 since I used grayscaled images for training. Additionally, I undo the sigmoid at the end of UNet with logit and add a softmax layer. I used the same optimizer (Adam) as the previous three parts but a BCE loss function instead, and a batch size of 32 and learning rate of 1e-3. I froze the pretrained model's weights at initialization. </p>
+
+<img src="pixnet1.png" width=400>
+<img src="pixnet2.png" width=400>
+
+<h4> MSE Loss (12 Epochs): </h4>
+<img src="bce_loss.png" height=400>
+
+<p> Although the loss did decrease with each epoch, it was very slow. If I had more time I would try a larger learning rate. </p>
+
+<h4> Test Set Examples </h4>
+<div class="row">
+  <div class="column2">
+      <img src="test_unet1.png" height=300>
+    </div>
+    <div class="column2">
+      <img src="test_unet2.png" height=300>
+    </div>
+</div>
+
+<div class="row">
+  <div class="column2">
+      <img src="test_unet3.png" height=300>
+    </div>
+    <div class="column2">
+      <img src="unet_heatmap.png" height=300>
+    </div>
+</div>
+
+<p> The model does not do well at point prediction. Although most points are gathered around the face area, they are not really pinpointing any features. The accumulated heatmap of the example resembles a face shape rather than keypoints. Perhaps more epochs and/or a larger learning rate could improve the results. </p>
+
+<h4> My Own Examples </h4>
+<div class="row">
+    <div class="column3">
+      <img src="unet_sample2.png" height=300>
+    </div>
+    <div class="column3">
+      <img src="unet_sample3.png" height=300>
+    </div>
+    <div class="column3">
+      <img src="unet_sample4.png" height=300>
+    </div>
+</div>
+
+<p> As expected, the results on my own images are also very bad. </p>
+
+<h2> Part 5: Kaggle </h2>
+<p> My Kaggle submission has MAE of 24.64081, my username is tracyx01. </p>
+
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+.column4 {
+  float: left;
+  width: 25%;
+  padding: 5px;
+}
+
+.column2 {
+  float: left;
+  width: 50%;
+  padding: 5px;
+}
+
+.column3 {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+}
+
+.column5 {
+  float: left;
+  width: 20%;
+  padding: 5px;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+</style>
+</head>
+<body>
+
+<h1><center> CS 194-26: Project 3 </h2>
+<h3><center> Tracy Xia </h3>
+
+<h3> Part 1. Defining Correspondences </h3>
+<p>	In this part I defined a function using ginput that will allow the user to manually select points on the input image and returns those points. After selecting points from two different images, we can then find the means of the two sets of points and create a triangulation using the Delaunay function at this midway shape. I chose to create a triangulation at the midway shape to lessen any possible deformations. </p>
+
+<h4> Points Picked </h4>
+<div class="row">
+  <div class="column2">
+      <img src="tracypts.jpg" alt="Tracy Points" height=300>
+      <p> Points Selected For Tracy </p>
+    </div>
+    <div class="column2">
+      <img src="lucypts.jpg" alt="Lucy Points" height=300>
+      <p> Points Selected For Lucy </p>
+    </div>
+</div>
+
+<h4> Midway Triangulation </h4>
+<div class="row">
+	<div class="column2">
+    	<img src="tracytriangulation.jpg" alt="Tracy Trianguation" height=300>
+    	<p> Tracy with Midway Triangulation </p>
+  	</div>
+  	<div class="column2">
+    	<img src="lucytriangulation.jpg" alt="Lucy Triangulation" height=300>
+    	<p> Lucy with Midway Triangulation </p>
+  	</div>
+</div>
+
+<h3> Part 2. Computing the "Mid-way Face" </h3>
+<p>	Here we are creating a mid-way face between two faces. In the previous part we have already selected the points and found the midway triangulation. Now we have to warp each of the two images into the midway shape and combine the two warped images. We can compute an affine warp for this and warp each triangle in the images. </p>
+<p>	For the affine warp we first want to compute the transformation (T1) from a unit triangle with points (0, 0), (0, 1), and (1, 0) into a triangle from the start image with points (A0, A1), (B0, B1), and (C0, C1). Then we compute the transformation (T2) from the unit triangle into the corresponding triangle in the end image with points (A'0, A'1), (B'0, B'1), and (C'0, C'1). We can get the transformation from the start image's triangle to the end image's triangle with (T1^-1) * (T2). </p>
+<p> The change of basis formula is Ax = y. For each transformation we want to find, set the first rows of x and y with the x coordinates of the start and end triangles, and the second rows will be the y coordinates. The third rows of x and y will be ones. We want our transformation matrix A to be of the form [[a, b, c], [d, e, f], [0, 0, 1]]. We can solve for each variable a-f using matrix multiplication. For an inverse warp, compute the inverse affine warps by finding A = (T1) * (T2^-1) instead such that Ax = y for x as our end image triangle and y as our start image triangle. </p>
+
+<div class="row">
+  <div class="column5">
+    <img src="tracy.jpeg" alt="Tracy" height=300>
+    <p> Tracy (Original) </p>
+  </div>
+  <div class="column5">
+    <img src="tracy+lucy/midA.jpg" alt="Tracy Warped" height=300>
+    <p> Tracy (Warped) </p>
+  </div>
+  <div class="column5">
+    <img src="tracy+lucy/midFace.jpg" alt="Tracy and Lucy Mid-Face" height=300>
+    <p> Mid-way Face </p>
+  </div>
+  <div class="column5">
+    <img src="tracy+lucy/midB.jpg" alt="Lucy Warped" height=300>
+    <p> Lucy (Warped) </p>
+  </div>
+  <div class="column5">
+    <img src="lucy.jpeg" alt="Lucy" height=300>
+    <p> Lucy (Original) </p>
+  </div>
+</div>
+
+<h3> Part 3. The Morph Sequence </h3>
+<p> For this part, we create a morph sequence from image 1 to image 2. At each step, we increment the warp and dissolve factors, starting with 0 for fully image 1 and 1 for fully image 2. </p>
+
+<h4 style="text-align: center;">	Tracy to Lucy Morphing </h4>
+<img src="tracytolucy.gif" alt="Tracy to Lucy Morphing" height=300, class="center">
+
+<h3> Part 4. The "Mean face" of a population </h3>
+<p> Using the Danes dataset, I created a mean face of the entire population (dataset). I found the means of the points of the entire set, then warped each image into the average shape. The mean face is created from averaging all warped images. </p>
+
+<h4> Some examples of faces warped to the average: </h4>
+<div class="row">
+  <div class="column4">
+    <img src="36-2m.jpg" alt="36" width=300>
+  </div>
+  <div class="column4">
+    <img src="22-2f.jpg" alt="22" width=300>
+  </div>
+  <div class="column4">
+    <img src="01-2m.jpg" alt="01" width=300>
+  </div>
+  <div class="column4">
+    <img src="08-2f.jpg" alt="08" width=300>
+  </div>
+</div>
+
+<img src="meanFaceSmile.jpg" alt="Mean Face Smiling" height=300, class="center">
+<h4 style="text-align: center;"> The Mean Face (Smiling!) </h4>
+
+<h4> Now for me: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="tracytomean.jpg" alt="Me to Mean" height=300>
+    <p> Me to the Mean </p>
+  </div>
+  <div class="column2">
+    <img src="meantotracy.jpg" alt="Mean to Me" height=300>
+    <p> The Mean to Me </p>
+  </div>
+</div>
+
+<p> very scary... </p>
+
+<h3> Part 5. Caricatures: Extrapolating from the mean </h3>
+<p> Now to create a caricature of my face! We extrapolate from the mean face calculated in the last step. Specifically, we subtract the mean points from the input image points and add these differences back into the input image. I used a factor of 0.5 so the final caricature is created from original_points + 0.5(original_points - average_points). </p>
+
+<h4> My Caricature: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="tracy_avgdim.jpg" alt="Tracy Original" height=300>
+    <p> Tracy (Original) </p>
+  </div>
+  <div class="column2">
+    <img src="caricature.jpg" alt="Tracy Caricature" height=300>
+    <p> Tracy (Caricature) </p>
+  </div>
+</div>
+
+
+<h3> Bells and Whistles </h3>
+
+<h4> Making Me Male </h4>
+<p> Using an image of the averages of Chinese men found on the internet, I make myself male-looking. </p>
+
+<div class="row">
+  <div class="column5">
+    <img src="tracy.jpeg" alt="Tracy" height=300>
+    <p> Tracy (Original) </p>
+  </div>
+  <div class="column5">
+    <img src="midAMan.jpg" alt="Tracy Warped" height=300>
+    <p> Tracy (Warped) </p>
+  </div>
+  <div class="column5">
+    <img src="midMan.jpg" alt="Male Tracy" height=300>
+    <p> Tracy (Male) </p>
+  </div>
+  <div class="column5">
+    <img src="midBMan.jpg" alt="man Warped" height=300>
+    <p> Man Average (Warped) </p>
+  </div>
+  <div class="column5">
+    <img src="avgman.jpeg" alt="Average Man" height=300>
+    <p> Man Average (Original) </p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="column3">
+    <img src="appmorph.gif" alt="Appearance Morph" height=300>
+    <p> Morphing Appearance Only </p>
+  </div>
+  <div class="column3">
+    <img src="manmorph.gif" alt="Man Morph" height=300>
+    <p> Morphing Myself into the Man Average </p>
+  </div>
+  <div class="column3">
+    <img src="shapemorph.gif" alt="Shape Morph" height=300>
+    <p> Morphing Shape Only </p>
+  </div>
+</div>
+
+
+
+</body>
+</html>

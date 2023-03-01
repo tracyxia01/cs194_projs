@@ -1,7 +1,246 @@
+<!DOCTYPE html>
 <html>
-	<head>
-	</head>
-	<body>
-		Project 2 here
-	</body>
+<head>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+.column4 {
+  float: left;
+  width: 25%;
+  padding: 5px;
+}
+
+.column2 {
+  float: left;
+  width: 50%;
+  padding: 5px;
+}
+
+.column3 {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+}
+
+.column5 {
+  float: left;
+  width: 20%;
+  padding: 5px;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+</style>
+</head>
+<body>
+
+<h1><center> CS 184: Project 2 MeshEdit </h1>
+<h3><center> Tracy Xia </h3>
+
+<h2> Overview </h2>
+<p> The focus of this project is to explore geomeetric modeling through Bezier curves and surfaces. By using the de Casteljau algorithm, manipulating triangle meshes through flipping and splitting different edges, as well as implementing loop subdivision, many different things can be achieved! It was interesting to see how each triangle in the mesh has so many different elements and what we can do with them. Especially with loop subdivision, we can create much rounder and smoother versions of our original meshes by splitting and flipping edges! </p>
+
+<h2> Section I: Bezier Curves and Surfaces </h2>
+<h3> Part 1: Bezier Curves with 1D de Casteljau Subdivision </h3>
+
+<p> We use the de Casteljau algorithm to obtain the recursive step used to obtain a single point on the Bezier curve. We continuously interpolate between two adjacent control points to obtain an intermediate control point, then interpolate between adjacent intermediate control points, and so on until we arrive at a single, final point which is located on the Bezier curve. In other words, we use linear interpolation on n control points to find n-1 intermittent points, and repeat this step recursively until we are left with just one point. The equation to calculate the position of the intermediate points is as follows: </p>
+
+<img src="interp_eq.png" height=50, class="center">
+
+<p> where the parameter t is a given parameter from the BezierCurve class. </p>
+<h4> Here is an example of evaluation using 6 control points: </h4>
+<img src="bez1.png" height=300>
+<img src="bez2.png" height=300>
+<img src="bez3.png" height=300>
+<img src="bez4.png" height=300>
+<img src="bez5.png" height=300>
+<img src="bez6.png" height=300>
+
+<h4> The following are examples of shifted control points and different t parameters: </h4>
+<img src="bez21.png" height=300>
+<img src="bez22.png" height=300>
+<img src="bez23.png" height=300>
+
+
+<h3> Part 2: Bezier Surfaces with Separable 1D de Casteljau </h3>
+
+<p> The de Casteljau algorithm can also be extended to Bezier surfaces. Given an nxn grid of control points, Pij and two parameters u and v, we will first take each row of control points in the grid, parametrized by parameter u. This gives us n points. We then parametrize these n points using the parameter v to find a point P that lies on the Bezier surface.  </p>
+
+<h4> Teapot evaluated by the implementation: </h4>
+<img src="part2.png" height=300, class="center">
+
+
+<h2> Section II: Triangle Meshes and Half-Edge Data Structure </h2>
+<h3> Part 3: Area-Weighted Vertex Normals </h3>
+<p> In this part, I implemented area-weighted normal vectors at vertices to provide better shading (Phong shading) for smooth surfaces. We can compute the area-weighted normal by iterating through each triangle incident to the vertex and weight its normal by its area then finally normalizing this sum of area-weighted normals. The area can be calculated as such: </p>
+
+<img src="area.png" height=300, class="center">
+
+<p> By taking the norm of the cross product of a and b, where and b are p1-p0 and p2-p0 for the three points in each triangle. Additionally, we divide this area by half to get the area of just a triangle. </p>
+
+<h4> Below is a comparison of before and after Phong shading: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="teapot.png" height=300>
+    <p> Flat Shading </p>
+  </div>
+  <div class="column2">
+    <img src="phong.png" height=300>
+    <p> Phong Shading </p>
+  </div>
+</div>
+
+
+<h3> Part 4: Edge Flip </h3>
+
+<p> For edge flip, I used the following diagram (found on Ed): </p>
+
+<img src="flip_diagram.png" height=350, class="center">
+
+<p> First, I gathered all of the elements illustrated in the first diagram. If any of the halfedges inside of the triangles are a boundary, I simply return the input edge. Otherwise, I can move on to reassigning the halfedges of the vertices, edges, and faces based on the second diagram. Lastly, I use setNeighbors to reassign the next, twin, vertex, edge, and face attributes of each halfedge. For debugging, having a correct diagram was extremely useful. Since there were many different elements to keep track of it was easy to make mistakes when setting the halfedges and/or neighbors. Another mistake that I made initially was setting the faces of the halfedges on the outside to f0 or f1 or next of these halfedges to each other (eg. h6->next() = h9), which produces (very) incorrect results. </p>
+
+<h4> Below is a comparison of before and after flips: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="teapot.png" height=300>
+    <p> Before Flips </p>
+  </div>
+  <div class="column2">
+    <img src="flip.png" height=300>
+    <p> After Flips </p>
+  </div>
+</div>
+
+
+<h3> Part 5: Edge Split </h3>
+
+<p> For edge splitting, we want to insert a new vertex at the midpoint of the given edge, subsequently also creating two new faces, three new edges, and thus six new halfedges. For splitting, if our given edge is a boundary, I can simply return immediately and ignore the request to split this edge. Otherwise, the following diagram illustrates how I implemented edge splitting: </p>
+
+<img src="split_diagram.png" height=350, class="center">
+
+<p> I first created all of the new elements that are added by the split. Then similar to edge flip, I assign the halfedges of the vertices, edges, and faces. Then I use setNeighbors on all of the halfedges. Additionally, I set the position of the new vertex to be the midpoint of the input edge. Learning from my mistakes in part 5, this part encountered less issues. Following the diagram made fixing mistakes and checking for correct assignments much easier. </p>
+
+<h4> Below is a comparison of before and after splits: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="teapot.png" height=300>
+    <p> Before Splits </p>
+  </div>
+  <div class="column2">
+    <img src="split.png" height=300>
+    <p> After Splits </p>
+  </div>
+</div>
+
+<h4> Below is a comparison of before and after flips and splits: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="teapot.png" height=300>
+    <p> Before Flips & Splits </p>
+  </div>
+  <div class="column2">
+    <img src="flipsplit.png" height=300>
+    <p> After Flips & Splits </p>
+  </div>
+</div>
+
+
+<h3> Part 6: Loop Subdivision for Mesh Upsampling </h3>
+
+<p> For loop subdivision, I first calculate the positions and the original vertices as well as the new vertices to be added. </p>
+
+<img src="verts.png" height=300, class="center">
+
+<p> For each vertex in the original mesh, we recalculate its position with the equation (1 - n * u) * original_position + u * original_neighbor_position_sum. We can find the original_neighbor_position_sum by traversing through and summing all of the neighboring vertices. For each new vertex that we will have, we can go through each original edge in the mesh and calculate the position with 3/8 * (A + B) + 1/8 * (C + D). We store each of these calculated positions temporarily in newPosition because we will still need the original positions for edge splitting in the following step. Additionally, when we loop through the original vertices and edges, we want to set the isNew attribute of each of these elements to false. This will be useful in the following step when we need to determine whether or not an edge/vertex is new or not. </p>
+
+<p> For the subdivision step, we have to first split all of the original edges. We can determine if each edge is in the original mesh or not by checking if both of its vertices are old. If so, it is in the original mesh and we will split it. Then, I set the newPosition of each new vertex created to be the newPosition we calculated and stored in the corresponding edge earlier. In edgeSplit, I also added a few additional lines setting the isNew attribute of the new vertex and the two new edges perpendicular to the input edge as true as this will be helpful for our next flipping step. For flipping, we only do so if it is a new edge that has exactly one new vertex and one old vertex. </p>
+
+<p> Finally, we will set the positions of each vertex in the mesh (new and old) to be the positions we stored in newPosition. </p>
+
+<p> For sharp corners and edges, they become more rounded after loop subdivision. We can reduce this effect by adding more edges in these areas. Additionally, the cube without edge preprocessing is asymmetrical, this is because the mesh of the cube is asymmetrical and we can split the diagonal edges of each side of the cube so that the cube subdivides symmetrically. </p>
+
+<h4> Here is the side by side of the cube loop subdivisions: </h4>
+<div class="row">
+  <div class="column3">
+    <p> Original </p>
+  </div>
+  <div class="column3">
+    <p> Symmetrical </p>
+  </div>
+  <div class="column3">
+    <p> Symmetrical with Additional Edge Splits</p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="column3">
+    <img src="c1.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="s1.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="e1.png" height=300>
+  </div>
+</div>
+
+<div class="row">
+  <div class="column3">
+    <img src="c2.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="s2.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="e2.png" height=300>
+  </div>
+</div>
+
+<div class="row">
+  <div class="column3">
+    <img src="c3.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="s3.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="e3.png" height=300>
+  </div>
+</div>
+
+<div class="row">
+  <div class="column3">
+    <img src="c4.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="s4.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="e4.png" height=300>
+  </div>
+</div>
+
+<div class="row">
+  <div class="column3">
+    <img src="c5.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="s5.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="e5.png" height=300>
+  </div>
+</div>
+
+<p> Notice that by making the mesh symmetrical, our shape remained symmetrical after loop subdivision. And by adding more splits to the mesh, we can obtain a shape with less rounded edges and vertices after the same number of loop subdivisions.
+
+
+<h3> Website Link: https://cal-cs184-student.github.io/proj-webpage-gobears/proj2/ </h3>
+</body>
 </html>

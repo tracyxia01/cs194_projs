@@ -103,7 +103,7 @@
 
 <img src="flip_diagram.png" height=350, class="center">
 
-<p> First, I gathered all of the elements illustrated in the first diagram. If any of the halfedges inside of the triangles are a boundary, I simply return the input edge. Otherwise, I can move on to reassigning the halfedges of the vertices, edges, and faces based on the second diagram. Lastly, I use setNeighbors to reassign the next, twin, vertex, edge, and face attributes of each halfedge. For debugging, having a correct diagram was extremely useful. Since there were many different elements to keep track of it was easy to make mistakes when setting the halfedges and/or neighbors. Another mistake that I made initially was setting the faces of the halfedges on the outside to f0 or f1 or next of these halfedges to each other (eg. h6->next() = h9), which produces (very) incorrect results. </p>
+<p> First, I gathered all of the elements illustrated in the first diagram. If the edge is a boundary, I simply return this input edge. Otherwise, I can move on to setting the halfedges of the vertices, edges, and faces based on the second diagram. Lastly, I use setNeighbors to set the next, twin, vertex, edge, and face attributes of each halfedge. For debugging, having a correct diagram was extremely useful. Since there were many different elements to keep track of it was easy to make mistakes when setting the halfedges and/or neighbors. Another mistake that I made initially was setting the faces of the halfedges on the outside to f0 or f1 or next of these halfedges to each other (eg. h6->next() = h9), which produces (very) incorrect results. </p>
 
 <h4> Below is a comparison of before and after flips: </h4>
 <div class="row">

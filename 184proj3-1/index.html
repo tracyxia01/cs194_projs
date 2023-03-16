@@ -1,7 +1,277 @@
+<!DOCTYPE html>
 <html>
-	<head>
-	</head>
-	<body>
-		Project 3-1 here
-	</body>
+<head>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+.column4 {
+  float: left;
+  width: 25%;
+  padding: 5px;
+}
+
+.column2 {
+  float: left;
+  width: 50%;
+  padding: 5px;
+}
+
+.column3 {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+}
+
+.column5 {
+  float: left;
+  width: 20%;
+  padding: 5px;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+</style>
+</head>
+<body>
+
+<h1><center> CS 184: Project 3-1 Pathtracer </h1>
+<h3><center> Tracy Xia </h3>
+
+<h2> Overview </h2>
+<p> The focus of this project is to implement a pathtracing algorithm in order to generate some realisitic renders. In this project, I explored how rays are generated, calculating if a ray intersects the scene, direct and indirect lighting, as well as accelaration. This project helped me understand better how pathtracing works and the methods that can use to speed up the rendering process (some scenes still take quite a while even with accelerations!). </p>
+
+<h3> Part 1: Ray Generation and Scene Intersection </h3>
+
+<p> In this part of the project, I first implement generate_ray which takes in normalized inputs x and y. Given that the bottom left corner of the camera sensor is located at (-tan(hFov/2), -tan(vFov/2), -1) and the top right corner is at (tan(hFov/2), tan(vFov/2), -1), we can use these corners and the given inputs to calculate the position of x and y in the camera space using bottom_left + coord * (top_right - bottom_left), and z is -1. We are given the matrix c2w which is used to transform the coordinates into world space from camera space and we can use the resulting vector as the direction of our new ray, with the given pos as the origin. </p>
+
+<p> Next in raytrace_pixel, we sample num_samples times and use the sample drawn to generate a new ray, where the input x and y are given by original_coords + sample normalized with the sampleBuffer width and height. We update the pixel with the average radiance of all of the new rays generated. </p>
+
+<p> For ray-triangle intersections, I used the Moller Trumbore Algorithm as described: </p>
+
+<img src="mtalg.png" height=300, class="center">
+
+<p> After caluculating t, b1, and b2, we can use these values to determine if we have an intersection. If either b1 or b2 is not within [0,1] and b1+b2 > 1 then we do not have a valid intersection. Then if t is within (min_t, max_t), we have a valid intersection. When there is an intersection, we want to update the max_t of the ray to be the t we found. Furthermore, we should update the input intersection structure with t, the surface normal, primitve, and bsdf. We can find the surface normal by applying baycentric coordinates using b1, b2, (1-b1-b2) and the normals of the triangle vertices. </p>
+
+<p> For ray-sphere intersections, I followed the method given by: </p>
+
+<img src="spherealg.png" height=300, class="center">
+
+<p> After obtaining t values, we set t1 to be the smaller value and t2 to be the larger. If either t1 or t2 is within (min_t, max_t) we have an intersection and we want to update max_t to be t1 (the closer of the two t values) and update the intersection structure with t, the surface normal, primitive, and bsdf. Here the normal can be calculated by ray_origin + t1*ray_direction - sphere_origin. </p>
+
+<h4> Here are some renders with normal shading: </h4>
+<div class="row">
+  <div class="column3">
+    <img src="part1/bunny.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="part1/cow.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="part1/teapot.png" height=300>
+  </div>
+</div>
+
+<h3> Part 2: Bounding Volume Hierarchy </h3>
+
+<p> In this part, I first implement the construvtion of BVH. We can construvt a BVH from a given vector of primitives by first initializing a bounding box for all primitives. Then we recursively call construct_bvh until the input vector of primitives contains less than or equal to max_leaf_size number of primitives. Otherwise, we need to split the primitives into left and right. First, I pick the axis to split on by finding the longest axis. I chose to split the axis using the median primitive heuristic. I wrote three different comparators which compares the x, y, or z values of the primitives' centroids. Using these comparators, I am able to sort the given primitves vector and can create a new pointer, mid, that points to the median primitive of the vector. Finally, I can assign the left and right children of the current node with the bvh constructed from the vector of primitives from start to mid and from mid to end, respectively. </p>
+
+<p> To implement ray-bvh intersection, we first implement the function of intersecting with a bounding box. We can find the t values with (point - ray_origin)/ray_direction where the points are the min and max of the bounding box. Ensure that all the mins are indeed the mins and the maxes are indeed the maxes. Then we can find the min of the maxes and the max of the mins. If the min t and max t are bounded within current t0, t1 and bounded within min_t, max_t, we have valid intersection and should update t0 and t1 with the new min t and max t values. </p>
+
+<p> Next for ray-bvh intersection, if our input ray does not intersect with the bounding box of the given node, then there is no intersection. Otherwise if the given node is a lead, we can check if any of the primitives of the node intersects with the ray. If the node is not a leaf, we have to recursively check the left and right children of the node as well. If we also wanted to find the nearest intersection, we need to check all primitives instead of terminating at the first primitive that intersects with the ray. </p>
+
+<h4> Below are some images that can only be rendered with BVH: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="part2/maxplanck.png" height=300>
+  </div>
+  <div class="column2">
+    <img src="part2/CBlucy.png" height=300>
+  </div>
+</div>
+
+<p> Comparing the rendering times with and without BVH acceleration, I found that the cow.dae, without BVH it took 18.96s to render compared to 0.048s. For bunny.dae, it was 116.48s compared to 0.053s. For teapot.dae, it was 7.73s compared to 0.051s. For all three examples, each object had a large number of primitives and BVH acceleration was able to bring rendering times down to around 0.05s while without BVH acceleration the rendering times took much longer. </p>
+
+
+<h3> Part 3: Direct Illumination </h3>
+<p> The first part of direct illumination is the zero bounce illumination which we can find with get_emission() of the given intersection's bsdf. The two different direct lighting implemented are uniform hemisphere sampling, and importance sampling lights. </p>
+
+<p> For uniform hemisphere sampling, we want to follow the Monte Carlo estimator: </p>
+
+<img src="montecarlo.png" height=100, class="center">
+
+<p> I looped through num_samples, and found wi using get_sample() and pdf with 1/(2*pi). In each iteration of the loop, I create a new ray with the origin at hit_p and the direction is o2w * wi, as get_sample gives wi in the object space. I check if the new ray intersects, if so I can add this sample to L_out. As illustrated in the Monte Carlo estimator, we want to add f * L * cos(wi) / pdf. I implemented f using reflectance / pi. Finally after finding the total sum, we can return the averaged value. </p>
+
+<h4> Renders using uniform hemisphere sampling: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="part3/CBspheres_H_64_32.png" height=300>
+  </div>
+  <div class="column2">
+    <img src="part3/CBbunny_H_64_32.png" height=300>
+  </div>
+</div>
+
+<p> The examples above show that uniform hemisphere sampling can be noisy. We can achieve better results by importance sampling lights, which also allows us to render images with only point lights. For this method, we first loop through each light in the scene. If the light is a point light we should set num_samples to 1, otherwise num_samples is the number of samples per area light source. We sample each light with sample_L(), which also returns the emitted radiance and writes the wi, pdf, and disToLight variables. Here wi is given in world space, so we want to multiply by w2o. If cos(wi) is positive, we generate a new ray as we did in the previous method and we want to add to L_out if the new ray does NOT intersect. This is because if there are not objects between the hit point and the light, then we know the light does cast light onto the hit point. And lastly, we return the averaged L_out value. </p>
+
+<h4> Renders using light sampling: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="part3/dragon_64_32.png" height=300>
+  </div>
+  <div class="column2">
+    <img src="part3/bunny_64_32.png" height=300>
+  </div>
+</div>
+
+<h4> Comparing noise in soft shadows using light sampling: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="part3/bun_1.png" height=300>
+    <p> 1 light ray </p>
+  </div>
+  <div class="column2">
+    <img src="part3/bun_4.png" height=300>
+    <p> 4 light rays </p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="column2">
+    <img src="part3/bun_16.png" height=300>
+    <p> 16 light rays </p>
+  </div>
+  <div class="column2">
+    <img src="part3/bun_64.png" height=300>
+    <p> 64 light rays </p>
+  </div>
+</div>
+
+<p> Importance sampling is able to produce the much smoother renders that uniform hemisphere sampling, with much less noise. This is because in uniform hemisphere sampling, we are taking samples from all around the area of interest but importance sampling samples the lights directly. While importance sampling produces better results than uniform hemisphere sampling, it also does not need longer render times, which makes it a better choice for direct lighting. </p>
+
+
+<h3> Part 4: Global Illumination </h3>
+
+<p> With global illumination, we can further improve the quality of our images with the addition of indirect lighting. For this part we implement at_least_one_bounce_radiance, and we want to initialize L_out to be the direct lighting. If max_ray_depth > 1 we want to trace at least one indirect bounce, is indirect lighting is turned on. Next, if our input ray depth is at the max_ray_depth or Russian Roulette returned true, we want to trace the indirect bouncce. I generate a new ray similarly to in direct lighting, and if this new ray intersects, I add to L_out. The radiance can be found by recursively calling at_least_one_bounce_radiance, and a slight difference from direct lighting is that if we are tracing this bounce due to Russian Roulette, we want to additionally divide the value we add to L_out by the cpdf (I chose 0.65). </p>
+
+
+<h4> Renders with Direct and Indirect Lighting: </h4>
+<div class="row">
+  <div class="column3">
+    <img src="part4/spheres.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="part4/blob.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="part4/bench.png" height=300>
+  </div>
+</div>
+
+<h4> Renders with Direct Lighting Only: </h4>
+<img src="part4/d_only.png" height=300>
+
+<h4> Renders with Indirect Lighting Only: </h4>
+<img src="part4/i_only.png" height=300>
+
+<h4> Different max_ray_depth: </h4>
+<div class="row">
+  <div class="column5">
+    <img src="part4/mrd0.png" height=200>
+    <p> max_ray_depth 0 </p>
+  </div>
+  <div class="column5">
+    <img src="part4/mrd1.png" height=200>
+    <p> max_ray_depth 1 </p>
+  </div>
+  <div class="column5">
+    <img src="part4/mrd2.png" height=200>
+    <p> max_ray_depth 2 </p>
+  </div>
+  <div class="column5">
+    <img src="part4/mrd3.png" height=200>
+    <p> max_ray_depth 3 </p>
+  </div>
+  <div class="column5">
+    <img src="part4/mrd100.png" height=200>
+    <p> max_ray_depth 100 </p>
+  </div>
+</div>
+
+<p> The biggest difference is between max_ray_depth 1 and 2, as indirect lighting is activated when max_ray_depth > 1. </p>
+
+<h4> Different sample-per-pixel rates: </h4>
+<div class="row">
+  <div class="column4">
+    <img src="part4/samp1.png" height=200>
+    <p> 1 sample per pixel </p>
+  </div>
+  <div class="column4">
+    <img src="part4/samp2.png" height=200>
+    <p> 2 samples per pixel </p>
+  </div>
+  <div class="column4">
+    <img src="part4/samp4.png" height=200>
+    <p> 4 samples per pixel </p>
+  </div>
+  <div class="column4">
+    <img src="part4/samp8.png" height=200>
+    <p> 8 samples per pixel </p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="column3">
+    <img src="part4/samp16.png" height=200>
+    <p> 16 samples per pixel </p>
+  </div>
+  <div class="column3">
+    <img src="part4/samp64.png" height=200>
+    <p> 64 samples per pixel </p>
+  </div>
+  <div class="column3">
+    <img src="part4/samp1024.png" height=200>
+    <p> 1024 samples per pixel </p>
+  </div>
+</div>
+
+<p> Increasing the number of samples per pixel helped decrease the amount of noise in the renders </p>
+
+
+
+<h3> Part 5: Adaptive Sampling </h3>
+
+<p> For adaptive sampling, modifications to raytrace_pixel were made. We can measure the pixel's convergence at any sample by calulating I, where I = 1.96 * std/sqrt(n) and n is the number of samples we have gone through. If I <= maxTolerance * mu, we know the pixel has converged and we can terminate the sampling loop. Previously, we found the illuminance of each sample in raytrace_pixel, and we can use these values to help calculate s1 and s2. s1 is the sum of all the illuminance, and s2 is the sum of all the illuminance squared. Then we can calculate mu = s1/n and var = 1/(n-1) * (s2 - s1^2/n). To lower the cost, we only check the convergence of the pixel every samplesPerBatch samples. Finally, sampleCountBuffer is updated to be filled with the actual number of samples. </p>
+
+<h4> Renders with Adaptive Sampling: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="part5/bunny.png" height=300>
+    <p> Bunny </p>
+  </div>
+  <div class="column2">
+    <img src="part5/bunny_rate.png" height=300>
+    <p> Bunny Rate </p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="column2">
+    <img src="part5/CBspheres.png" height=300>
+    <p> Spheres </p>
+  </div>
+  <div class="column2">
+    <img src="part5/CBspheres_rate.png" height=300>
+    <p> Spheres Rate </p>
+  </div>
+</div>
+
+
+<h3> Website Link: https://cal-cs184-student.github.io/proj-webpage-gobears/proj3-1/ </h3>
+</body>
 </html>

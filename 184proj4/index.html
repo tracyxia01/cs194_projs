@@ -1,7 +1,354 @@
+<!DOCTYPE html>
 <html>
-	<head>
-	</head>
-	<body>
-		Project 4 here
-	</body>
+<head>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+.column4 {
+  float: left;
+  width: 25%;
+  padding: 5px;
+}
+
+.column2 {
+  float: left;
+  width: 50%;
+  padding: 5px;
+}
+
+.column3 {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+}
+
+.column5 {
+  float: left;
+  width: 20%;
+  padding: 5px;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+</style>
+</head>
+<body>
+
+<h1><center> CS 184: Project 4 Clothsim </h1>
+<h3><center> Tracy Xia </h3>
+
+<h2> Overview </h2>
+<p> In this project I implemented a real-time simulation of cloth using a mass and spring based system. First, I built data structures to discretely represent the cloth, then defined and applied physical constraints. To simulate the way cloth moves, we used numerical intergration. To more accurately represent the behavior of cloth, object collisions and self-collisions were also implemented. Lastly, we write our shaders in GLSL so that we can create cloth simulations with different textures. </p>
+
+
+<h3> Part 1: Masses and springs </h3>
+<p> In this part, I first build a grid of masses and springs. In row major order, we will a grid with point masses, then we create the appropriate springs in order to apply structual, shear, and bending constraints between the point masses. We have to calculate the correct x, y, and z positions for the point masses based on where we are in the grid and the orientation of our cloth. </p>
+
+<h4> Here is the cloth wireframe: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="grid1.png" height=300>
+  </div>
+  <div class="column2">
+    <img src="grid2.png" height=300>
+  </div>
+</div>
+
+<h4> Some detailed views of the springs: </h4>
+<div class="row">
+  <div class="column3">
+    <img src="noshear.png" height=300>
+    <p> No Shearing Constraints </p>
+  </div>
+  <div class="column3">
+    <img src="shear.png" height=300>
+    <p> Shearing Constraints Only </p>
+  </div>
+  <div class="column3">
+    <img src="all.png" height=300>
+    <p> All Constraints </p>
+  </div>
+</div>
+
+<p> Pop quiz: aliasing in the wireframes! </p>
+
+<h3> Part 2: Simulation via numerical integration </h3>
+
+<p> In this part, we need to figure out the physics of the cloth simulation. In the representation used in this project, there are the external forces and the spring correction forces. First, we calculate the total force acting on each point mass. First, we have the external force, calculated with the accelerations in external_accelerations using F = ma. Next, we have the spring correction forces, looping through our springs, calculated by Fs = ks * (||pa - pb|| - l) where l is the spring's rest length and pa and pb are the positions of the spring's two masses. For the spring correction forces, we apply the force to one point mass and an equal, but opposite force to the other. </p>
+
+<p> Next, we use Verlet integration to compute new point mass positions. For each point mass, we can calculate the new position with new_position = position + (1 - d) * (position - last_position) + acceleration * dt^2. The acceleration ca be found by dividing the total force of the point mass by the mass. We then update the position, and store the previous position in last_position. Note that we only do this update in the point mass is NOT pinned. </p>
+
+<p> Lastly, we have to constrain the position changes such that the spring's length is at most 10% greater than its rest_length at the end of any time step. If one point mass is pinned, apply the correction only to the other point mass. If both are pinned, there is no need to apply any correction. And if neither are pinned, we apply half the correction to each point mass. We can find this correction by first determining if the spring's length (distance between the two point masses) is indeed 10% greater than the rest length. Proceeding if true, we can find the difference between the distance and 110% of the rest length, which tells us how much we need to bring the point mass position(s) in. We apply the necessary correction on one or both of point mass positions so that the point masses are closer to each other thus shortening the spring length appropriately. </p>
+
+<h4> Shaded cloth in final resting state: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="cloth1.png" height=300>
+  </div>
+  <div class="column2">
+    <img src="cloth2.png" height=300>
+  </div>
+</div>
+
+<h4> Exploring some different parameters: </h4>
+
+<div class="row">
+  <div class="column3">
+    <img src="ks10.png" height=300>
+    <p> ks 10 </p>
+  </div>
+  <div class="column3">
+    <img src="ks5000.png" height=300>
+    <p> ks 5000 (Default) </p>
+  </div>
+  <div class="column3">
+    <img src="ks50000.png" height=300>
+    <p> ks 50000 </p>
+  </div>
+</div>
+<p> When we use a small ks constant for the spring, the cloth appears more wrinkled and droopy whereas larger ks constants causes the cloth to appear more tightly bound and smoothed. </p>
+
+<div class="row">
+  <div class="column3">
+    <img src="ks5000.png" height=300>
+    <p> Density 15 (Default) </p>
+  </div>
+  <div class="column3">
+    <img src="dens100.png" height=300>
+    <p> Density 100 </p>
+  </div>
+  <div class="column3">
+    <img src="dens500.png" height=300>
+    <p> Density 500 </p>
+  </div>
+</div>
+<p> We can observe that when we set higher densities, the folds/wrinkles of the cloth seems more tight and the bottoms of the cloths become more curved. This is because the cloth becomes heavier with density increase. </p>
+
+<div class="row">
+  <div class="column3">
+    <video height="300" controls>
+      <source src="damp00.mp4" type="video/mp4">
+    </video>
+    <p> Damping 0.0% </p>
+  </div>
+  <div class="column3">
+    <video height="300" controls>
+      <source src="damp02.mp4" type="video/mp4">
+    </video>
+    <p> Damping 0.2% (Default) </p>
+  </div>
+  <div class="column3">
+    <video height="300" controls>
+      <source src="damp10.mp4" type="video/mp4">
+    </video>
+    <p> Damping 1.0% </p>
+  </div>
+</div>
+
+<p> High damping causes the cloth to fall more slowly as the springs lose energy quickly while small damping resulted in more movements of the cloth and swinging since the springs do not lose/loses less energy. </p>
+
+
+<h3> Part 3: Handling collisions with other objects </h3>
+<p> First, to handle collisions with spheres, we adjust the position of a point mass if it intersects with or is inside the sphere. To do this we have to compute the intersection of the cloth and the sphere surface, or the tangent point, then compute the correction vector that we need to apply to the last_position in order to reach the tangent point. Finally, we set the position of the point mass to be this last_position adjusted by the correction (and scaled down by friction, 1-f). To find the tangent point, we can use the same method as ray-sphere intersection. First we check if the distance from the point mass position to the center of the sphere is less than or equal to the radius of the circle. If it is that means the cloth is touching or inside the sphere. Then we can find the direction vector from the center of the sphere to the point mass position and use this along with the center and radius of the circle to find the tangent point. The correction vector is then the last_position - tangent. </p>
+
+<h4> Sphere Collisions: </h4>
+<div class="row">
+  <div class="column3">
+    <img src="sp_ks500.png" height=300>
+    <p> ks 500 </p>
+  </div>
+  <div class="column3">
+    <img src="sp_ks5000.png" height=300>
+    <p> ks 5000 (Default) </p>
+  </div>
+  <div class="column3">
+    <img src="sp_ks50000.png" height=300>
+    <p> ks 50000 </p>
+  </div>
+</div>
+<p> Similarly as in just the cloth simulation, lower ks constant values makes the cloth appear more droopy where as higher ks constants give the cloth more structure and appears more rigid. </p>
+
+<p> Second, we have plane collisions where we "bump" the position of the point mass back to the side of the surface it came from if the cloth moves from one side of the plane to the other. For plane intersection we can reference ray-plane intersection. We can calculate the t value and if t<0 that indicates the point mass has gone through the plane. If so we can compute the tangent point as the intersection and then calculate the correction vector. We use a small SURFACE_OFFSET constant so that the cloth is slightly above the plane. </p>
+
+  <h4> Plane Collision: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="plane1.png" height=300>
+  </div>
+  <div class="column2">
+    <img src="plane2.png" height=300>
+  </div>
+</div>
+
+<h3> Part 4: Handling self-collisions </h3>
+
+<p> The implementation for self-collisions is broken into three parts. First we implement hash_position wich takes a point masse's position and uniquely map it to a float that represents a specific 3D box volume. The 3D space is partitioned into a 3D box of dimensions w * h * t where w = 3 * width / num_width_points, h= 3 * height / num_height_points, and t=max(w,h). I truncate the coordinates of the position to the closest 3D box by subtracting the modulo from the values and create unqiue keys with ww + 1001*hh + 1001*1001*tt where ww, hh, and tt are the truncated values. </p>
+
+<p> Next, I implemented build_spatial_map which looped over all point masses and generated a hash number for each point using hash_position. Then populated the map with the point masses based on their hash numbers. </p>
+
+<p> Lastly, we have self_collide which takes in a point mass and looks up the potential candidates for collision using the hash table. If the current point mass and a candidate are less that 2 * thickness distance apart we want to compute a correction vector so that the point is at least 2 * thickness away from the candidate. Looping through all candidate vectors, we add up all of the correction vectors and finally take the average of it, and also scaled down by simulation_steps, to apply to the current point mass. I ran into some errors in this part where my cloth would fall into itself and this was because I did not initialize my correction vector as 0 in the beginning! </p>
+
+<h4> Self-collision: </h4>
+<div class="row">
+  <div class="column3">
+    <img src="fall1.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="fall2.png" height=300>
+  </div>
+  <div class="column3">
+    <img src="fall3.png" height=300>
+  </div>
+</div>
+
+<h4> Varying density: </h4>
+<div class="row">
+  <div class="column3">
+    <img src="d5.png" height=300>
+    <p> Density 5 </p>
+  </div>
+  <div class="column3">
+    <img src="d50.png" height=300>
+    <p> Density 50 </p>
+  </div>
+  <div class="column3">
+    <img src="d500.png" height=300>
+    <p> Density 500 </p>
+  </div>
+</div>
+<p> When we increase the density, the cloth becomes more wrinkly and has many small folds while lower densities make the cloth appear smoother and has larger and less folds. </p>
+
+
+<h4> Varying ks: </h4>
+<p> ks 500 </p>
+<div class="row">
+  <div class="column2">
+    <img src="ks500_1.png" height=300>
+  </div>
+  <div class="column2">
+    <img src="ks500_2.png" height=300>
+  </div>
+</div>
+<p> ks 50000 </p>
+<div class="row">
+  <div class="column2">
+    <img src="ks50000_1.png" height=300>
+  </div>
+  <div class="column2">
+    <img src="ks50000_2.png" height=300>
+  </div>
+</div>
+<p> When we increase the ks constant, the cloth has stronger springs so the cloth folds less and seems more rigid. When we have a smaller ks constant the cloth does not have as much bounce so it folds more and is more wrinkled. </p>
+
+<h3> Part 5: Shaders </h3>
+
+<p> In the final part of this project, I implemented GLSL shaders. Shaders run in parallel on GPU, taking in inputs and outputing a single 4D vector. We work with two different shader types, vertex and fragment. The shader program is created by compiling and linking a vertex and fragment shader, and the output of the vertex shader is the input of the fragment shader. Vertex shaders apply transforms to vertices and modifies their geometric properties (position and normal) while fragment shaders take in geometric attributes of the fragment caluclated by the vertex shader and write a color into out_color. </p>
+
+<p> First, we have diffuse shading. The diffuse lighting can be calculated by Ld = kd*(I/r^2)*max(0, n⋅l). I chose kd=1. </p>
+
+<p> For Blinn-Phong shading, our equations is composed of three components: abient, diffuse, and specular light. The diffuse component is the same as our diffuse lighting previously. Ambient lighting is given by ka*Ia and the specular component is given by ks*(I/r^2)*max(0, n⋅h)^p. I chose ka=0.1, kd=u_color, ks=0.5, Ia = vector of ones, and p=100. </p>
+
+<h4> Phong Shading: </h4>
+<div class="row">
+  <div class="column4">
+    <img src="phonga.png" height=300>
+    <p> Ambient Only </p>
+  </div>
+  <div class="column4">
+    <img src="phongd.png" height=300>
+    <p> Diffuse Only </p>
+  </div>
+  <div class="column4">
+    <img src="phongs.png" height=300>
+    <p> Specular Only </p>
+  </div>
+  <div class="column4">
+    <img src="phong.png" height=300>
+    <p> Phong Shading </p>
+  </div>
+</div>
+
+<p> Texture mapping can be achieved by using the texture() function. </p>
+<div class="row">
+  <div class="column2">
+    <img src="tex1.png" height=300>
+  </div>
+  <div class="column2">
+    <img src="tex2.png" height=300>
+  </div>
+</div>
+
+<p> In bump mapping, we modify the normal vectors of the object so that the fragment shader will give the illusion of details on an object. In displacement mapping, we further modify the position of vertices to reflect the height map also. Both mappings still use Phong shading. </p>
+
+<h4> Bump vs Displacement Mapping: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="bump_sp.png" height=300>
+    <p> Bump on Sphere </p>
+  </div>
+  <div class="column2">
+    <img src="bump_cl.png" height=300>
+    <p> Bump on Cloth </p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="column2">
+    <img src="disp_sp.png" height=300>
+    <p> Displacement on Sphere </p>
+  </div>
+  <div class="column2">
+    <img src="disp_cl.png" height=300>
+    <p> Displacement on Cloth </p>
+  </div>
+</div>
+
+ <p> Comparing the two shaders, we can see that while bump mapping makes it seem like the materials are textured, it is noticeable that the surfaces are not actually raised on the edges. On the other hand, displacement mapping gives a "rougher" look where we can tell that parts of the surfaces are actually raised. </p>
+
+<h4> Varying Coarseness: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="bump16.png" height=300>
+    <p> Bump, Coarseness 16 </p>
+  </div>
+  <div class="column2">
+    <img src="disp16.png" height=300>
+    <p> Displacement, Coarseness 16 </p>
+  </div>
+</div>
+<div class="row">
+  <div class="column2">
+    <img src="bump128.png" height=300>
+    <p> Bump, Coarseness 128 </p>
+  </div>
+  <div class="column2">
+    <img src="disp128.png" height=300>
+    <p> Displacement, Coarseness 128 </p>
+  </div>
+</div>
+
+<p> At a smaller coarseness, there is no noticeable difference between the two shaders. However, at a larger coarseness, displacement mapping more noticeably modifies the vertices such that the surfaces actually looked raised. </p>
+
+<p> Finally, we have the mirror shader, achieved by reflecting the out-going eyeray wo across the surface normal to get wi. Then we sample the environment map for the incoming direction wi. </p>
+
+<h4> Mirror Shader: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="mirror2.png" height=300>
+    <p> Mirror on Sphere </p>
+  </div>
+  <div class="column2">
+    <img src="mirror.png" height=300>
+    <p> Mirror on Cloth </p>
+  </div>
+</div>
+
+<h3> Website Link: https://cal-cs184-student.github.io/proj-webpage-gobears/proj4/ </h3>
+</body>
 </html>

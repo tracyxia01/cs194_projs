@@ -1,7 +1,195 @@
+<!DOCTYPE html>
 <html>
-	<head>
-	</head>
-	<body>
-		Project 3-2 here
-	</body>
+<head>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+.column4 {
+  float: left;
+  width: 25%;
+  padding: 5px;
+}
+
+.column2 {
+  float: left;
+  width: 50%;
+  padding: 5px;
+}
+
+.column3 {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+}
+
+.column5 {
+  float: left;
+  width: 20%;
+  padding: 5px;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+</style>
+</head>
+<body>
+
+<h1><center> CS 184: Project 3-2 Pathtracer 2</h1>
+<h3><center> Tracy Xia </h3>
+
+<h2> Overview </h2>
+<p> In this project I implemented Microfacet Material and Depth of Field. For Microfacet Material, the process involves implementing the BRDF evaluation function, Normal Distribution Function, Fresnel Term, and finally Importance Sampling. The main component of this part is importance sampling, where I importance sample the microfacet BRDF according to the shape of the Beckmann NDF according to the steps described in the project spec. In depth of field, the goal is to simulate thin lens to achieve the depth of field effect. This involves implementing a generate_ray_for_thin_lens function. It takes in two additional parameters, rndR and rndTheta which are used to uniformly sample the thin lens, compared to the generate_ray function from Project 3-1. </p>
+
+<h3> Microfacet Material </h3>
+
+<p> To implement the BRDF evaluation function, we need to use the following formula: </p>
+<img src="sf.png" height=100, class="center">
+<p> The functions used in this equation is either given or will be implemented later on. The macro surface normal, n, is given by (0, 0, 1) in local coordinates, and h is given by: </p>
+<img src="h.png" height=100, class="center">
+<p> where v and l are wo and wi. </p>
+
+<p> The normal distribution function is calculated by: </p>
+<img src="D.png" height=100, class="center">
+
+<p> And the Fresnel term is calculated by: </p>
+<img src="bf.png" height=200, class="center">
+<p> where eta and k are taken directly from the dae files, which we can also customize by changing the values in the files to achieve the effect of different conductor materials. </p>
+
+
+<p> Lastly we have importance sampling, where we have to find the appropriate sampled wi and pdf to be passed into the BRDF evaluation function and returned. We want to sample according to the Beckmann NDF and we find the following pdfs: </p>
+<img src="ptpp.png" height=150, class="center">
+<p> Then we can invert them to sample them: </p>
+<img src="tp.png" height=150, class="center">
+<p> where r1 and r2 are two uniformly sampled numbers. The found theta and phi are the spherical coordinates of our vector h, which we need to reflect wo according to in order to obtain our sampled wi. The reflectance can be found, with wo as v and h as l, by: </p>
+<img src="r.png" height=100, class="center">
+<p> Lastly, to find the pdf of this wi, we use the following functions: </p>
+<img src="pwh.png" height=100, class="center">
+<img src="pww.png" height=100, class="center">
+<p> where p_w(wi) is the final pdf. Additionally, we need to check that both wo and wi are valid in BRDF evaluation and if wi is valid in importance sampling. </p>
+
+<p> The implementation of the above functions were relatively straightforward, although it is important to make sure that all signs were correct. Additionally, I made a mistake initially where I misunderstood the numerator of p_w(h) to be cross product (instead of multiplication) which resulted in a darker color than what the material is supposed to look like.  </p>
+
+<h4> Here are some renders with different alpha values: </h4>
+<div class="row">
+  <div class="column4">
+    <img src="part1/dragon1.png" height=300>
+    <p> alpha = 0.005 </p>
+  </div>
+  <div class="column4">
+    <img src="part1/dragon2.png" height=300>
+    <p> alpha = 0.05 </p>
+  </div>
+  <div class="column4">
+    <img src="part1/dragon3.png" height=300>
+    <p> alpha = 0.25 </p>
+  </div>
+  <div class="column4">
+    <img src="part1/dragon4.png" height=300>
+    <p> alpha = 0.5 </p>
+  </div>
+</div>
+<p> The alpha value corresponds to the roughness of the material. As we increase the alpha value, the surface of the dragon becomes more rough whereas a small alpha value creates a shinier and smoother dragon.</p>
+
+<h4> Importance Sampling vs default Cosine Hemisphere Sampling: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="part1/bunny_importance.png" height=300>
+    <p> Importance Sampling </p>
+  </div>
+  <div class="column2">
+    <img src="part1/bunny_default.png" height=300>
+    <p> Cosine Hemisphere Sampling </p>
+  </div>
+</div>
+<p> As the images show, using cosine hemisphere sampling produces a lot of black spots and regions, since cosine hemisphere sampling converges a lot slower compared to importance sampling. In comparison, with the same settings, importance sampling is able to produce a more finished image within a similar amount of time. </p>
+
+<h4> Here are some renders with different conductor materials: </h4>
+<div class="row">
+  <div class="column2">
+    <img src="part1/bunny_ag.png" height=300>
+    <p> Pure Silver </p>
+  </div>
+  <div class="column2">
+    <img src="part1/bunny_ag_rough.png" height=300>
+    <p> Pure Silver (Rough) </p>
+  </div>
+</div>
+<div class="row">
+  <div class="column2">
+    <img src="part1/bunny_fe.png" height=300>
+    <p> Iron </p>
+  </div>
+  <div class="column2">
+    <img src="part1/bunny_fe_rough.png" height=300>
+    <p> Iron (Rough) </p>
+  </div>
+</div>
+<p> For Silver (in RGB order): eta: 0.059193 0.059881 0.047366 and k: 4.1283 3.5892 2.8132</p>
+<p> For Iron (in RGB order): eta: 2.8851 2.9500 2.6500 and k: 3.0449 2.9300 2.8075</p>
+
+<h3> Depth of Field </h3>
+
+<p> The following diagram illustrates the relationship between the different spaces: </p>
+<img src="diagram.png" height=300>
+
+<p> In this part, I implemented generate_ray_for_thin_lens, which takes in two additional parameters than generate_ray (from Project 3-1), rndR and rndTheta. These are two random numbers uniformly distributed in [0, 1) and [0, 2pi), and are used to uniformly sample the thin lens. The red ray is what ray we found in generate ray. pLens is the origin (in camera space) of the ray (blue ray in diagram) that we want to find. This is calculated by: </p>
+<img src="plens.png" height=30>
+<p> Next, pFocus is found by intersecting the red ray with the plane of focus. This can be found by ray-plane intersection. We first find t: </p>
+<img src="t.png" height=75>
+<p> where p' is a point on the plane of focus (any point will do and we know that z=-focalDistance!) and N is the normal of the plane. The origin is the camera origin (red ray origin) and direction is the red ray direction, which we calculated in generate_ray. Then we can find the intersection location by plugging t back into r(t) = o + td and the direction (pFocus) can be calculated as the difference between this point and pLens. We can use pLens and pFocus (converted to world space) to create the ray we want to return. </p>
+
+<p> Compared to a pin-hole camera where everything is in focus, a thin lens camera only focus on things at the focal distance. By changing the focal distance and aperture we can change the focus of the image we render. The thin lens model is more accurate to how real cameras and the human eyes work, as they don't have everything in focus like the pin-hole camera does. </p>
+
+
+<h4> Below are some images rendered at different "focus stacks": </h4>
+<div class="row">
+  <div class="column4">
+    <img src="part4/01_40.png" height=300>
+    <p> aperture 0.1, focal distance 4.0 </p>
+  </div>
+  <div class="column4">
+    <img src="part4/01_35.png" height=300>
+    <p> aperture 0.1, focal distance 3.5 </p>
+  </div>
+  <div class="column4">
+    <img src="part4/01_30.png" height=300>
+    <p> aperture 0.1, focal distance 3.0 </p>
+  </div>
+  <div class="column4">
+    <img src="part4/01_25.png" height=300>
+    <p> aperture 0.1, focal distance 2.5 </p>
+  </div>
+</div>
+
+<h4> Below are some images rendered at different apertures: </h4>
+<div class="row">
+  <div class="column4">
+    <img src="part4/001_45.png" height=300>
+    <p> aperture 0.01, focal distance 4.5 </p>
+  </div>
+  <div class="column4">
+    <img src="part4/006_45.png" height=300>
+    <p> aperture 0.06, focal distance 4.5</p>
+  </div>
+  <div class="column4">
+    <img src="part4/011_45.png" height=300>
+    <p> aperture 0.11, focal distance 4.5 </p>
+  </div>
+  <div class="column4">
+    <img src="part4/021_45.png" height=300>
+    <p> aperture 0.21, focal distance 4.5 </p>
+  </div>
+</div>
+
+<p> From the images we can see that by adjusting the aperture and focal distance, we can achieve different focus of the scene. </p>
+
+
+<h3> Website Link: https://cal-cs184-student.github.io/proj-webpage-gobears/proj3-2/ </h3>
+</body>
 </html>
